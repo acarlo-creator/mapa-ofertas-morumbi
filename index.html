@@ -60,7 +60,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    const PLANILHA_ID = "1Ze2_ymSI0AuQ3l-rBqoeX8YYZ3Obbc6JPMXfyVYEydQ"; 
+    const PLANILHA_ID = "https://docs.google.com/spreadsheets/d/1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8/edit?gid=2013806288#gid=2013806288"; 
     const ABA_NOME = "Página1";
     const API_URL = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA_NOME}`;
 
@@ -86,28 +86,31 @@
       document.getElementById('coords-debug').innerHTML = `Coordenadas clicadas -> X: <b>${x}</b> | Y: <b>${y}</b>`;
     });
 
-    // Função que desenha a linha vermelha tracejada no mapa
-    window.desenharRota = function(strRota) {
+    function desenharRota(strRota) {
       if (linhaRotaAtual) {
         map.removeLayer(linhaRotaAtual);
       }
 
       if (!strRota) return;
 
-      const pontos = strRota.split(';').map(ponto => {
-        const [x, y] = ponto.split(',').map(Number);
-        return [y, x];
-      });
+      try {
+        const pontos = strRota.split(';').map(ponto => {
+          const [x, y] = ponto.split(',').map(Number);
+          return [y, x];
+        });
 
-      linhaRotaAtual = L.polyline(pontos, {
-        color: '#e53935',
-        weight: 5,
-        dashArray: '8, 8',
-        lineCap: 'round'
-      }).addTo(map);
+        linhaRotaAtual = L.polyline(pontos, {
+          color: '#e53935',
+          weight: 5,
+          dashArray: '8, 8',
+          lineCap: 'round'
+        }).addTo(map);
 
-      map.fitBounds(linhaRotaAtual.getBounds(), { padding: [50, 50] });
-    };
+        map.fitBounds(linhaRotaAtual.getBounds(), { padding: [50, 50] });
+      } catch(e) {
+        console.error("Erro ao desenhar rota:", e);
+      }
+    }
 
     async function carregarOfertas() {
       try {
@@ -120,20 +123,27 @@
             const posY = parseFloat(item.y);
 
             if (!isNaN(posX) && !isNaN(posY)) {
-              const popupHtml = `
-                <div class="card-oferta">
-                  <span class="tag-campanha">${item.titulo_campanha}</span>
-                  <h3>${item.produto_destaque}</h3>
-                  ${item.foto_url ? `<img src="${item.foto_url}" alt="Foto">` : ''}
-                  <div class="preco-container">
-                    ${item.preco_de ? `<div class="preco-de">De: R$ ${item.preco_de}</div>` : ''}
-                    <div class="preco-por">Por: R$ ${item.preco_por}</div>
-                  </div>
-                  ${item.rota ? `<button class="btn-rota" onclick="desenharRota('${item.rota}')">🚶‍♂️ Ver Caminho Até Aqui</button>` : ''}
+              const card = document.createElement('div');
+              card.className = 'card-oferta';
+              card.innerHTML = `
+                <span class="tag-campanha">${item.titulo_campanha || 'Oferta'}</span>
+                <h3>${item.produto_destaque || ''}</h3>
+                ${item.foto_url ? `<img src="${item.foto_url}" alt="Foto">` : ''}
+                <div class="preco-container">
+                  ${item.preco_de ? `<div class="preco-de">De: R$ ${item.preco_de}</div>` : ''}
+                  <div class="preco-por">Por: R$ ${item.preco_por}</div>
                 </div>
               `;
 
-              const marker = L.marker([posY, posX]).addTo(map).bindPopup(popupHtml);
+              if (item.rota && item.rota.trim() !== "") {
+                const btn = document.createElement('button');
+                btn.className = 'btn-rota';
+                btn.innerHTML = '🚶‍♂️ Ver Caminho Até Aqui';
+                btn.onclick = () => desenharRota(item.rota);
+                card.appendChild(btn);
+              }
+
+              const marker = L.marker([posY, posX]).addTo(map).bindPopup(card);
 
               marker.on('click', () => {
                 if (item.rota) desenharRota(item.rota);
