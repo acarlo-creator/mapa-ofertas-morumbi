@@ -86,7 +86,7 @@
       document.getElementById('coords-debug').innerHTML = `Coordenadas clicadas -> X: <b>${x}</b> | Y: <b>${y}</b>`;
     });
 
-    // Função para desenhar o caminho no mapa
+    // Função que desenha a linha vermelha tracejada no mapa
     window.desenharRota = function(strRota) {
       if (linhaRotaAtual) {
         map.removeLayer(linhaRotaAtual);
@@ -94,7 +94,6 @@
 
       if (!strRota) return;
 
-      // Converter "500,100;500,700" para array [[Y, X], [Y, X]]
       const pontos = strRota.split(';').map(ponto => {
         const [x, y] = ponto.split(',').map(Number);
         return [y, x];
