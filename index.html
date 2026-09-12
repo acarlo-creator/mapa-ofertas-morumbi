@@ -60,9 +60,10 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    const PLANILHA_ID = "https://docs.google.com/spreadsheets/d/1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8/edit?gid=2013806288#gid=2013806288"; 
-    const ABA_NOME = "Página1";
-    const API_URL = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA_NOME}`;
+    // ID extraído da sua planilha
+    const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
+    const GID = "2013806288";
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
     const bounds = [[0, 0], [1000, 1000]];
     const map = L.map('map', {
@@ -114,10 +115,26 @@
 
     async function carregarOfertas() {
       try {
-        const response = await fetch(API_URL);
-        const ofertas = await response.json();
+        const response = await fetch(CSV_URL);
+        const textData = await response.text();
 
-        ofertas.forEach(item => {
+        const lines = textData.split('\n');
+        if (lines.length < 2) return;
+
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+
+          const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+          const item = {};
+          
+          headers.forEach((header, index) => {
+            let val = values[index] ? values[index].trim() : '';
+            val = val.replace(/^"|"$/g, '');
+            item[header] = val;
+          });
+
           if (String(item.ativo).trim() === "1") {
             const posX = parseFloat(item.x);
             const posY = parseFloat(item.y);
@@ -150,9 +167,9 @@
               });
             }
           }
-        });
+        }
       } catch (err) {
-        console.error("Erro ao carregar dados do Google Sheets:", err);
+        console.error("Erro ao carregar dados da planilha:", err);
       }
     }
 
