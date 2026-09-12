@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Ofertas da Semana - Leroy Merlin Morumbi</title>
 
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -18,24 +17,29 @@
       justify-content: space-between; padding: 0 16px; z-index: 1000;
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
-    #header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.5px; }
+    #header h1 { font-size: 18px; margin: 0; font-weight: 700; }
     #header .badge { background: #e53935; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
 
     #map { width: 100vw; height: calc(100vh - 60px); margin-top: 60px; background: #f0f2f5; }
 
-    /* Estilo dos Popups das Ofertas */
     .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
     .leaflet-popup-content { margin: 0 !important; width: 240px !important; }
     
     .card-oferta { padding: 14px; text-align: center; }
     .card-oferta .tag-campanha { display: inline-block; background: #e53935; color: #fff; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 8px; }
     .card-oferta h3 { margin: 0 0 6px 0; font-size: 15px; color: #111; line-height: 1.2; }
-    .card-oferta img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin: 6px 0; }
-    .card-oferta .preco-container { margin-top: 6px; }
+    .card-oferta img { width: 100%; height: 110px; object-fit: cover; border-radius: 6px; margin: 6px 0; }
+    .card-oferta .preco-container { margin-top: 4px; }
     .card-oferta .preco-de { text-decoration: line-through; color: #888; font-size: 12px; }
-    .card-oferta .preco-por { color: #2e7d32; font-size: 20px; font-weight: 800; margin-top: 2px; }
+    .card-oferta .preco-por { color: #2e7d32; font-size: 18px; font-weight: 800; margin-top: 2px; }
     
-    /* Painel para pegar coordenadas dos cliques */
+    .btn-rota {
+      margin-top: 10px; width: 100%; background: #004b87; color: white;
+      border: none; padding: 8px; border-radius: 6px; font-weight: bold;
+      cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-rota:hover { background: #003366; }
+
     #coords-debug {
       position: absolute; bottom: 10px; left: 10px; z-index: 1000;
       background: rgba(0,0,0,0.85); color: #00ffcc; padding: 8px 12px;
@@ -53,16 +57,13 @@
   <div id="map"></div>
   <div id="coords-debug">Clique no mapa para pegar a coordenada (X, Y)</div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    // URL publica de extração da planilha publicada
     const PLANILHA_ID = "1Ze2_ymSI0AuQ3l-rBqoeX8YYZ3Obbc6JPMXfyVYEydQ"; 
     const ABA_NOME = "Página1";
     const API_URL = `https://opensheet.elk.sh/${PLANILHA_ID}/${ABA_NOME}`;
 
-    // Configuração da dimensão do mapa
     const bounds = [[0, 0], [1000, 1000]];
     const map = L.map('map', {
       crs: L.CRS.Simple,
@@ -73,19 +74,42 @@
       attributionControl: false
     });
 
-    // Subir a imagem do mapa da loja
     const imageUrl = 'mapa-loja.png';
     L.imageOverlay(imageUrl, bounds).addTo(map);
     map.fitBounds(bounds);
 
-    // Capturador de Coordenadas
+    let linhaRotaAtual = null;
+
     map.on('click', function(e) {
       const y = Math.round(e.latlng.lat);
       const x = Math.round(e.latlng.lng);
       document.getElementById('coords-debug').innerHTML = `Coordenadas clicadas -> X: <b>${x}</b> | Y: <b>${y}</b>`;
     });
 
-    // Carregar os dados dinâmicos do Google Sheets
+    // Função para desenhar o caminho no mapa
+    window.desenharRota = function(strRota) {
+      if (linhaRotaAtual) {
+        map.removeLayer(linhaRotaAtual);
+      }
+
+      if (!strRota) return;
+
+      // Converter "500,100;500,700" para array [[Y, X], [Y, X]]
+      const pontos = strRota.split(';').map(ponto => {
+        const [x, y] = ponto.split(',').map(Number);
+        return [y, x];
+      });
+
+      linhaRotaAtual = L.polyline(pontos, {
+        color: '#e53935',
+        weight: 5,
+        dashArray: '8, 8',
+        lineCap: 'round'
+      }).addTo(map);
+
+      map.fitBounds(linhaRotaAtual.getBounds(), { padding: [50, 50] });
+    };
+
     async function carregarOfertas() {
       try {
         const response = await fetch(API_URL);
@@ -106,10 +130,15 @@
                     ${item.preco_de ? `<div class="preco-de">De: R$ ${item.preco_de}</div>` : ''}
                     <div class="preco-por">Por: R$ ${item.preco_por}</div>
                   </div>
+                  ${item.rota ? `<button class="btn-rota" onclick="desenharRota('${item.rota}')">🚶‍♂️ Ver Caminho Até Aqui</button>` : ''}
                 </div>
               `;
 
-              L.marker([posY, posX]).addTo(map).bindPopup(popupHtml);
+              const marker = L.marker([posY, posX]).addTo(map).bindPopup(popupHtml);
+
+              marker.on('click', () => {
+                if (item.rota) desenharRota(item.rota);
+              });
             }
           }
         });
