@@ -98,7 +98,7 @@
     display:flex; align-items:center; justify-content:center;
   }
 
-  /* ---------- MAP PIN ---------- */
+  /* ---------- MAP PIN (ofertas) ---------- */
   .lm-pin-wrap{ position:relative; width:38px; height:50px; }
   .lm-pin{
     width:34px; height:34px; background:var(--lm-green); border:3px solid #fff;
@@ -118,20 +118,36 @@
   @keyframes dropIn{ from{ transform:translateY(-14px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
   .lm-pin-wrap{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
 
-  .admin-pt{
+  /* ---------- "VOCÊ ESTÁ AQUI" MARKER ---------- */
+  .me-pin-wrap{ width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:grab; }
+  .me-pin{
+    width:18px; height:18px; border-radius:50%; background:var(--lm-orange);
+    border:3px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.35); position:relative; z-index:2;
+  }
+  .me-pin-ring{
+    position:absolute; width:34px; height:34px; border-radius:50%;
+    border:2px solid var(--lm-orange); opacity:.55; animation:mePulse 1.7s infinite;
+  }
+  @keyframes mePulse{ 0%{ transform:scale(.4); opacity:.6; } 100%{ transform:scale(1.7); opacity:0; } }
+
+  /* ---------- CORRIDOR EDITOR NODES ---------- */
+  .node-pt{
     width:22px; height:22px; border-radius:50%; background:var(--ink); color:#fff;
-    border:2px solid #fff; font-size:10.5px; font-weight:700; display:flex;
+    border:2px solid #fff; font-size:10px; font-weight:700; display:flex;
     align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.3);
   }
+  .node-pt.selected{ background:var(--lm-orange); }
 
-  /* ---------- FAB ---------- */
-  #fab-list{
-    position:absolute; right:14px; bottom:calc(20px + var(--safe-b));
-    z-index:850; background:var(--lm-green-deep); color:#fff; border:none;
-    border-radius:26px; padding:13px 18px 13px 16px; display:flex; align-items:center; gap:8px;
-    font-size:13.5px; font-weight:700; box-shadow:var(--shadow-lg); cursor:pointer;
+  /* ---------- FABs ---------- */
+  #fab-list, #fab-meulocal{
+    position:absolute; bottom:calc(20px + var(--safe-b)); z-index:850; border:none;
+    border-radius:26px; padding:13px 16px; display:flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:700; box-shadow:var(--shadow-lg); cursor:pointer;
   }
-  #fab-list:active{ transform:scale(0.96); }
+  #fab-list{ right:14px; background:var(--lm-green-deep); color:#fff; padding-right:18px; }
+  #fab-meulocal{ left:14px; background:#fff; color:var(--ink); border:1px solid var(--line); }
+  #fab-meulocal.on{ background:var(--lm-orange); color:#fff; border-color:var(--lm-orange); }
+  #fab-list:active, #fab-meulocal:active{ transform:scale(0.96); }
 
   #route-clear{
     position:absolute; left:50%; transform:translateX(-50%); top:calc(120px + var(--safe-t));
@@ -197,7 +213,7 @@
     cursor:pointer; box-shadow:0 6px 16px rgba(30,138,60,0.35);
   }
   .btn-route:active{ transform:scale(0.98); }
-  .btn-route[disabled]{ background:var(--paper-warm); color:var(--ink-soft); box-shadow:none; cursor:default; }
+  .btn-route.secondary{ background:var(--paper-warm); color:var(--ink); box-shadow:none; }
 
   .dots{ display:flex; justify-content:center; gap:6px; padding-bottom:2px; }
   .dots span{ width:6px; height:6px; border-radius:50%; background:var(--line); }
@@ -219,7 +235,7 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .list-row .info .lp{ font-size:12.5px; color:var(--lm-green-deep); font-weight:700; margin-top:2px; }
 
-  /* ---------- ADMIN PANEL ---------- */
+  /* ---------- ADMIN PANEL (equipe) ---------- */
   #admin-panel{
     position:fixed; left:10px; right:10px; bottom:calc(10px + var(--safe-b)); z-index:1002;
     background:var(--ink); color:#fff; border-radius:16px; padding:12px 14px;
@@ -229,10 +245,19 @@
   #admin-panel .ap-head{ display:flex; align-items:center; justify-content:space-between; }
   #admin-panel .ap-head b{ font-size:13px; font-weight:700; }
   #admin-panel .ap-head small{ color:#9BB3A2; font-size:11.5px; }
+  #admin-panel .ap-hint{ color:#9BB3A2; font-size:11.5px; line-height:1.4; }
   #admin-panel .ap-string{
-    background:rgba(255,255,255,0.08); border-radius:9px; padding:9px 10px; font-size:12px;
-    font-family:'SFMono-Regular',Menlo,monospace; color:#B9F0CB; word-break:break-all; min-height:20px;
+    background:rgba(255,255,255,0.08); border-radius:9px; padding:9px 10px; font-size:11px;
+    font-family:'SFMono-Regular',Menlo,monospace; color:#B9F0CB; word-break:break-all;
+    max-height:64px; overflow-y:auto; display:none;
   }
+  #admin-panel .ap-string.show{ display:block; }
+  .ap-modes{ display:flex; gap:8px; }
+  .ap-mode-btn{
+    flex:1; border:1px solid rgba(255,255,255,0.16); background:transparent; color:#fff;
+    border-radius:9px; padding:8px 6px; font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .ap-mode-btn.active{ background:var(--lm-green); border-color:var(--lm-green); }
   #admin-panel .ap-actions{ display:flex; gap:8px; }
   .ap-btn{
     flex:1; border:none; border-radius:9px; padding:9px 6px; font-size:12px; font-weight:700; cursor:pointer;
@@ -248,7 +273,7 @@
     position:fixed; left:50%; top:calc(16px + var(--safe-t)); transform:translate(-50%,-140%);
     background:var(--ink); color:#fff; font-size:13px; font-weight:600; padding:10px 16px;
     border-radius:11px; z-index:1200; box-shadow:var(--shadow-sm); transition:transform .25s ease;
-    display:flex; align-items:center; gap:8px;
+    display:flex; align-items:center; gap:8px; max-width:86vw; text-align:center;
   }
   #toast.show{ transform:translate(-50%,0); }
 
@@ -288,18 +313,22 @@
       <div class="brand"><b>LEROY MERLIN</b><span>Morumbi · Mapa de ofertas</span></div>
       <div style="display:flex; align-items:center; gap:8px;">
         <div class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">—</span></div>
-        <button class="icon-btn" id="btn-admin" title="Criar caminho até a oferta">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.4" stroke="currentColor" stroke-width="2"/></svg>
+        <button class="icon-btn" id="btn-admin" title="Editor de corredores (equipe)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12h4l2-5 4 10 2-5h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
     </div>
     <div id="chips"></div>
   </div>
 
-  <!-- Ação flutuante -->
+  <!-- Ações flutuantes -->
+  <button id="fab-meulocal">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span id="fab-meulocal-label">Marcar meu local</span>
+  </button>
   <button id="fab-list">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
-    Ver todas as ofertas
+    Ofertas
   </button>
 
   <button id="route-clear">
@@ -330,18 +359,22 @@
     <div class="list-inner" id="list-inner"></div>
   </div>
 
-  <!-- Painel do modo admin (criar rota) -->
+  <!-- Painel do editor de corredores (equipe) -->
   <div id="admin-panel">
     <div class="ap-head">
-      <b>Criar caminho até a oferta</b>
-      <small id="ap-count">0 pontos</small>
+      <b>Editor de corredores</b>
+      <small id="ap-count">0 nós · 0 conexões</small>
     </div>
-    <small style="color:#9BB3A2;">Toque no mapa para marcar o trajeto, do ponto de partida até a oferta.</small>
-    <div class="ap-string" id="ap-string">Nenhum ponto ainda — toque no mapa.</div>
+    <div class="ap-modes">
+      <button class="ap-mode-btn active" id="ap-mode-no">+ Nó</button>
+      <button class="ap-mode-btn" id="ap-mode-aresta">🔗 Conectar nós</button>
+    </div>
+    <div class="ap-hint" id="ap-hint">Toque no mapa para marcar um ponto do corredor.</div>
+    <div class="ap-string" id="ap-string"></div>
     <div class="ap-actions">
       <button class="ap-btn undo" id="ap-undo">Desfazer</button>
-      <button class="ap-btn clear" id="ap-clear">Limpar</button>
-      <button class="ap-btn copy" id="ap-copy">Copiar</button>
+      <button class="ap-btn clear" id="ap-clear">Limpar tudo</button>
+      <button class="ap-btn copy" id="ap-copy">Exportar</button>
       <button class="ap-btn done" id="ap-done">Concluir</button>
     </div>
   </div>
@@ -351,21 +384,34 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
   /* =========================================================================
-     CONFIG — troque pela sua planilha/imagem
+     CONFIG
   ========================================================================= */
   const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
   const GID = "2013806288";
+  const CORREDOR_GID = "";               // <- opcional: GID de uma aba "Corredores" (veja abaixo)
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  /* Colunas esperadas na planilha:
+  /* Colunas da aba de OFERTAS (sem mudanças):
      id_setor, nome_setor, ativo, titulo_campanha, produto_destaque,
      preco_de, preco_por, foto_url, x, y, rota (opcional)
-     - Várias linhas podem usar o MESMO id_setor: elas viram um único pino
-       com várias ofertas (carrossel). Só a 1ª linha do setor precisa ter x/y.
-     - "rota" é opcional, formato "x,y;x,y;x,y" (use o modo "Criar caminho"
-       no botão do mapa-pin no topo para gerar isso sem precisar calcular
-       coordenadas na mão). */
+     - Várias linhas com o mesmo id_setor viram 1 pino só, com carrossel.
+     - Só a 1ª linha do setor precisa ter x/y.
+     - "rota" continua opcional: se preenchida (formato "x,y;x,y"), essa
+       oferta usa esse caminho fixo. Se ficar vazia, o caminho é calculado
+       na hora, a partir de onde o cliente marcar "meu local" no mapa —
+       não é mais necessário cadastrar rota por oferta.
+
+     Aba opcional "Corredores" (para caminhos mais realistas, seguindo os
+     corredores da loja em vez de linha reta) — crie com as colunas:
+     tipo,id,x,y,de,para
+       linha de nó:    no,n1,120,300,,
+       linha de conexão: aresta,,,,n1,n2
+     Use o botão de corredores (ícone no topo) para desenhar essa malha
+     tocando no mapa e o botão "Exportar" já gera essas linhas prontas
+     pra colar na planilha. Depois, coloque o GID dessa aba em
+     CORREDOR_GID acima. Sem essa aba configurada, o caminho é traçado
+     em linha reta — já funciona, só fica menos "andando pelos corredores". */
 
   /* =========================================================================
      MAPA BASE
@@ -401,7 +447,7 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toast._tm);
-    toast._tm = setTimeout(()=> t.classList.remove('show'), 1800);
+    toast._tm = setTimeout(()=> t.classList.remove('show'), 2000);
   }
 
   function openSheet(sheet){
@@ -418,7 +464,6 @@
   el('close-detail').addEventListener('click', closeSheets);
   el('close-list').addEventListener('click', closeSheets);
 
-  // arrastar pra baixo pra fechar
   function enableDragToClose(handle, sheet){
     let startY = null, currentY = 0;
     handle.addEventListener('touchstart', e => { startY = e.touches[0].clientY; sheet.style.transition='none'; }, {passive:true});
@@ -444,7 +489,7 @@
   }
 
   /* =========================================================================
-     ÍCONE DE PINO
+     ÍCONE DE PINO DE OFERTA
   ========================================================================= */
   const pinSvg = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2C7 2 3 5.9 3 10.5c0 4.2 3.5 8.2 8.1 11.2.55.36 1.24.36 1.8 0C17.5 18.7 21 14.7 21 10.5 21 5.9 17 2 12 2Zm0 11.2a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Z" fill="white"/></svg>`;
 
@@ -463,11 +508,32 @@
   }
 
   /* =========================================================================
-     CARREGAR E AGRUPAR OFERTAS
+     ESTADO: local do cliente, destino pendente, ofertas, corredores
   ========================================================================= */
-  let grupos = {};       // id_setor -> {nome_setor,x,y,ofertas:[]}
+  let grupos = {};
   let markersPorSetor = {};
 
+  let meuLocal = null;          // {x,y}
+  let meuLocalMarker = null;
+  let settingMeuLocal = false;
+  let pendingDestino = null;    // {x,y} — destino aguardando o cliente marcar o local
+
+  let CORREDOR_NODES = [];      // [{id,x,y}]
+  let CORREDOR_EDGES = [];      // [[id,id]]
+  let nodeSeq = 0;
+
+  let adminMode = false;
+  let adminSubMode = 'no';      // 'no' | 'aresta'
+  let selectedNodeId = null;
+
+  try{
+    const saved = localStorage.getItem('lm_meu_local');
+    if(saved) meuLocal = JSON.parse(saved);
+  }catch(e){}
+
+  /* =========================================================================
+     CARREGAR E AGRUPAR OFERTAS
+  ========================================================================= */
   async function carregarOfertas(){
     mostrarEstado('loading');
     try{
@@ -504,7 +570,6 @@
         }
       }
 
-      // remove grupos sem coordenada válida
       Object.keys(grupos).forEach(k => { if(grupos[k].x === null) delete grupos[k]; });
 
       const totalGrupos = Object.keys(grupos).length;
@@ -517,6 +582,35 @@
     }catch(err){
       console.error('Erro ao carregar ofertas:', err);
       mostrarEstado('error');
+    }
+  }
+
+  async function carregarCorredores(){
+    if(!CORREDOR_GID) return;
+    try{
+      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${CORREDOR_GID}`;
+      const resp = await fetch(url, { cache: 'no-store' });
+      if(!resp.ok) return;
+      const text = await resp.text();
+      const lines = text.split('\n').filter(l => l.trim() !== '');
+      if(lines.length < 2) return;
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const nodes = [], edges = [];
+      for(let i = 1; i < lines.length; i++){
+        const values = lines[i].split(',');
+        const row = {};
+        headers.forEach((h, idx) => { row[h] = values[idx] ? values[idx].trim().replace(/^"|"$/g, '') : ''; });
+        if(row.tipo === 'no' && row.id){
+          const x = parseFloat(row.x), y = parseFloat(row.y);
+          if(!isNaN(x) && !isNaN(y)) nodes.push({ id: row.id, x, y });
+        } else if(row.tipo === 'aresta' && row.de && row.para){
+          edges.push([row.de, row.para]);
+        }
+      }
+      if(nodes.length){ CORREDOR_NODES = nodes; CORREDOR_EDGES = edges; nodeSeq = CORREDOR_NODES.length; }
+    }catch(e){
+      console.warn('Corredores não carregados — usando linha reta como caminho.', e);
     }
   }
 
@@ -571,6 +665,143 @@
   el('state-retry').addEventListener('click', carregarOfertas);
 
   /* =========================================================================
+     "MEU LOCAL" — o cliente marca de onde está partindo
+  ========================================================================= */
+  function atualizarLabelMeuLocal(){
+    el('fab-meulocal-label').textContent = meuLocal ? 'Meu local ✓' : 'Marcar meu local';
+  }
+  atualizarLabelMeuLocal();
+
+  function colocarMeuLocalMarker(){
+    if(meuLocalMarker) map.removeLayer(meuLocalMarker);
+    meuLocalMarker = L.marker([meuLocal.y, meuLocal.x], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div class="me-pin-wrap"><div class="me-pin-ring"></div><div class="me-pin"></div></div>',
+        iconSize: [34, 34], iconAnchor: [17, 17]
+      }),
+      draggable: true, zIndexOffset: 1000
+    }).addTo(map);
+    meuLocalMarker.on('dragend', () => {
+      const ll = meuLocalMarker.getLatLng();
+      meuLocal = { x: Math.round(ll.lng), y: Math.round(ll.lat) };
+      try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(e){}
+    });
+  }
+  if(meuLocal) colocarMeuLocalMarker();
+
+  function ativarModoMeuLocal(){
+    settingMeuLocal = true;
+    el('fab-meulocal').classList.add('on');
+    toast('Toque no mapa para marcar onde você está');
+  }
+  function desativarModoMeuLocal(){
+    settingMeuLocal = false;
+    el('fab-meulocal').classList.remove('on');
+  }
+  el('fab-meulocal').addEventListener('click', () => {
+    if(settingMeuLocal){ desativarModoMeuLocal(); return; }
+    ativarModoMeuLocal();
+  });
+
+  /* =========================================================================
+     CÁLCULO DE CAMINHO (grafo de corredores + linha reta como fallback)
+  ========================================================================= */
+  function buildAdjacency(){
+    const adj = {};
+    CORREDOR_NODES.forEach(n => adj[n.id] = []);
+    CORREDOR_EDGES.forEach(([a,b]) => {
+      const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
+      if(!na || !nb) return;
+      const d = Math.hypot(na.x-nb.x, na.y-nb.y);
+      (adj[a] = adj[a]||[]).push({to:b, w:d});
+      (adj[b] = adj[b]||[]).push({to:a, w:d});
+    });
+    return adj;
+  }
+
+  function nearestNode(x,y){
+    if(!CORREDOR_NODES.length) return null;
+    let best=null, bestD=Infinity;
+    CORREDOR_NODES.forEach(n=>{ const d=Math.hypot(n.x-x,n.y-y); if(d<bestD){bestD=d;best=n;} });
+    return best;
+  }
+
+  function dijkstra(startId, endId){
+    const adj = buildAdjacency();
+    const dist = {}, prev = {};
+    CORREDOR_NODES.forEach(n=>dist[n.id]=Infinity);
+    dist[startId]=0;
+    const pendentes = new Set(CORREDOR_NODES.map(n=>n.id));
+    while(pendentes.size){
+      let u=null, best=Infinity;
+      pendentes.forEach(id=>{ if(dist[id]<best){ best=dist[id]; u=id; } });
+      if(u===null) break;
+      pendentes.delete(u);
+      if(u===endId) break;
+      (adj[u]||[]).forEach(edge=>{
+        const alt = dist[u]+edge.w;
+        if(alt<dist[edge.to]){ dist[edge.to]=alt; prev[edge.to]=u; }
+      });
+    }
+    if(!(endId in dist) || dist[endId]===Infinity) return null;
+    const path=[endId];
+    let cur=endId;
+    while(cur!==startId){
+      cur = prev[cur];
+      if(cur===undefined) return null;
+      path.unshift(cur);
+    }
+    return path.map(id=>CORREDOR_NODES.find(n=>n.id===id));
+  }
+
+  function calcularCaminho(origem, destino){
+    if(!CORREDOR_NODES.length) return [origem, destino];
+    const nOrig = nearestNode(origem.x, origem.y);
+    const nDest = nearestNode(destino.x, destino.y);
+    if(!nOrig || !nDest) return [origem, destino];
+    const path = dijkstra(nOrig.id, nDest.id);
+    if(!path) return [origem, destino];
+    return [origem, ...path, destino];
+  }
+
+  function desenharCaminho(pontos){
+    rotaLayer.clearLayers();
+    if(!pontos || pontos.length < 2){ el('route-clear').classList.remove('show'); return; }
+    const latlngs = pontos.map(p => [p.y, p.x]);
+    L.polyline(latlngs, { color:'#1E8A3C', weight:5, dashArray:'2, 10', lineCap:'round' }).addTo(rotaLayer);
+    L.circleMarker(latlngs[latlngs.length-1], { radius:6, color:'#fff', weight:2, fillColor:'#FF6B00', fillOpacity:1 }).addTo(rotaLayer);
+    map.fitBounds(L.polyline(latlngs).getBounds(), { padding:[60,60] });
+    el('route-clear').classList.add('show');
+  }
+
+  // compatibilidade com rota manual (string "x,y;x,y" vinda da planilha)
+  function desenharRota(strRota){
+    if(!strRota){ desenharCaminho(null); return; }
+    try{
+      const pontos = strRota.split(';').filter(p=>p.trim()!=='').map(p => {
+        const [x,y] = p.split(',').map(Number);
+        return { x, y };
+      });
+      desenharCaminho(pontos);
+    }catch(e){ console.error('Erro ao desenhar rota:', e); }
+  }
+  el('route-clear').addEventListener('click', () => desenharCaminho(null));
+
+  function tracarCaminhoPara(destino){
+    if(meuLocal){
+      const pontos = calcularCaminho(meuLocal, destino);
+      desenharCaminho(pontos);
+      closeSheets();
+      toast(CORREDOR_NODES.length ? 'Caminho traçado no mapa' : 'Caminho traçado (linha direta)');
+    } else {
+      pendingDestino = destino;
+      closeSheets();
+      ativarModoMeuLocal();
+    }
+  }
+
+  /* =========================================================================
      SHEET — DETALHE DA OFERTA (carrossel)
   ========================================================================= */
   function abrirDetalhe(idSetor, indice){
@@ -582,10 +813,13 @@
     carousel.innerHTML = '';
     dots.innerHTML = '';
 
-    grupo.ofertas.forEach((oferta, i) => {
+    grupo.ofertas.forEach((oferta) => {
       const desconto = (oferta.preco_de && oferta.preco_por)
         ? Math.round(100 - (parseFloat(oferta.preco_por.replace(',','.')) / parseFloat(oferta.preco_de.replace(',','.'))) * 100)
         : null;
+
+      const temRotaManual = !!(oferta.rota && oferta.rota.trim() !== '');
+      const labelBotao = temRotaManual || meuLocal ? 'Ver caminho até aqui' : 'Marcar meu local e ver caminho';
 
       const card = document.createElement('div');
       card.className = 'offer-card';
@@ -601,25 +835,27 @@
             <div class="price-now">R$ ${formatPreco(oferta.preco_por)}</div>
           </div>
         </div>
-        <button class="btn-route" ${!oferta.rota ? 'disabled' : ''}>
+        <button class="btn-route">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="2"/></svg>
-          ${oferta.rota ? 'Ver caminho até aqui' : 'Caminho não configurado'}
+          ${labelBotao}
         </button>
       `;
-      if(oferta.rota){
-        card.querySelector('.btn-route').addEventListener('click', () => {
+      card.querySelector('.btn-route').addEventListener('click', () => {
+        if(temRotaManual){
           desenharRota(oferta.rota);
           closeSheets();
           toast('Caminho traçado no mapa');
-        });
-      }
+          return;
+        }
+        tracarCaminhoPara({ x: grupo.x, y: grupo.y });
+      });
       carousel.appendChild(card);
 
       const d = document.createElement('span');
       dots.appendChild(d);
     });
 
-    if(grupo.ofertas.length <= 1) dots.style.display = 'none'; else dots.style.display = 'flex';
+    dots.style.display = grupo.ofertas.length <= 1 ? 'none' : 'flex';
 
     openSheet(sheetDetail);
 
@@ -678,84 +914,135 @@
   });
 
   /* =========================================================================
-     ROTA (trajeto até a oferta) — exibição para o cliente
+     EDITOR DE CORREDORES (equipe) — construir a malha de caminhos 1 vez
   ========================================================================= */
-  function desenharRota(strRota){
-    rotaLayer.clearLayers();
-    if(!strRota) { el('route-clear').classList.remove('show'); return; }
-    try{
-      const pontos = strRota.split(';').filter(p=>p.trim()!=='').map(ponto => {
-        const [x, y] = ponto.split(',').map(Number);
-        return [y, x];
-      });
-      L.polyline(pontos, { color:'#1E8A3C', weight:5, dashArray:'2, 10', lineCap:'round' }).addTo(rotaLayer);
-      L.circleMarker(pontos[pontos.length-1], { radius:6, color:'#fff', weight:2, fillColor:'#FF6B00', fillOpacity:1 }).addTo(rotaLayer);
-      map.fitBounds(L.polyline(pontos).getBounds(), { padding:[60,60] });
-      el('route-clear').classList.add('show');
-    }catch(e){
-      console.error('Erro ao desenhar rota:', e);
-    }
-  }
-  el('route-clear').addEventListener('click', () => desenharRota(null));
+  function novoNodeId(){ nodeSeq++; return 'n' + nodeSeq; }
 
-  /* =========================================================================
-     MODO ADMIN — criar caminho tocando no mapa
-  ========================================================================= */
-  let adminMode = false;
-  let adminPoints = [];
+  function renderCorridorGraph(){
+    adminLayer.clearLayers();
+    CORREDOR_NODES.forEach(n => {
+      const marker = L.marker([n.y, n.x], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="node-pt${n.id===selectedNodeId ? ' selected':''}">${n.id.replace('n','')}</div>`,
+          iconSize:[22,22], iconAnchor:[11,11]
+        })
+      }).addTo(adminLayer);
+      marker.on('click', (ev) => {
+        L.DomEvent.stopPropagation(ev);
+        if(!adminMode || adminSubMode !== 'aresta') return;
+        if(!selectedNodeId){ selectedNodeId = n.id; renderCorridorGraph(); return; }
+        if(selectedNodeId === n.id){ selectedNodeId = null; renderCorridorGraph(); return; }
+        CORREDOR_EDGES.push([selectedNodeId, n.id]);
+        selectedNodeId = null;
+        renderCorridorGraph();
+        atualizarPainelCorredores();
+      });
+    });
+    CORREDOR_EDGES.forEach(([a,b]) => {
+      const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
+      if(na && nb) L.polyline([[na.y,na.x],[nb.y,nb.x]], { color:'#16211A', weight:3, dashArray:'2,8' }).addTo(adminLayer);
+    });
+  }
+
+  function atualizarPainelCorredores(){
+    el('ap-count').textContent = `${CORREDOR_NODES.length} nós · ${CORREDOR_EDGES.length} conexões`;
+  }
+
+  function atualizarModoBotoes(){
+    el('ap-mode-no').classList.toggle('active', adminSubMode==='no');
+    el('ap-mode-aresta').classList.toggle('active', adminSubMode==='aresta');
+    el('ap-hint').textContent = adminSubMode==='no'
+      ? 'Toque no mapa para marcar um ponto do corredor.'
+      : 'Toque em 2 pontos, em sequência, para ligá-los.';
+  }
 
   el('btn-admin').addEventListener('click', () => {
     adminMode = !adminMode;
     el('btn-admin').classList.toggle('on', adminMode);
     el('admin-panel').classList.toggle('show', adminMode);
     closeSheets();
+    selectedNodeId = null;
     if(adminMode){
-      toast('Toque no mapa para marcar o caminho');
+      renderCorridorGraph();
+      atualizarPainelCorredores();
+      atualizarModoBotoes();
     } else {
-      adminPoints = [];
-      renderAdminPoints();
+      adminLayer.clearLayers();
     }
   });
 
-  map.on('click', e => {
-    if(!adminMode) return;
-    adminPoints.push({ x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
-    renderAdminPoints();
-  });
+  el('ap-mode-no').addEventListener('click', () => { adminSubMode='no'; selectedNodeId=null; atualizarModoBotoes(); renderCorridorGraph(); });
+  el('ap-mode-aresta').addEventListener('click', () => { adminSubMode='aresta'; atualizarModoBotoes(); });
 
-  function renderAdminPoints(){
-    adminLayer.clearLayers();
-    adminPoints.forEach((p, i) => {
-      L.marker([p.y, p.x], {
-        icon: L.divIcon({ className:'', html:`<div class="admin-pt">${i+1}</div>`, iconSize:[22,22], iconAnchor:[11,11] })
-      }).addTo(adminLayer);
-    });
-    if(adminPoints.length > 1){
-      L.polyline(adminPoints.map(p => [p.y, p.x]), { color:'#16211A', weight:3, dashArray:'2,8' }).addTo(adminLayer);
+  el('ap-undo').addEventListener('click', () => {
+    if(adminSubMode==='no'){
+      const removido = CORREDOR_NODES.pop();
+      if(removido) CORREDOR_EDGES = CORREDOR_EDGES.filter(([a,b]) => a!==removido.id && b!==removido.id);
+    } else {
+      CORREDOR_EDGES.pop();
     }
-    const str = adminPoints.map(p => `${p.x},${p.y}`).join(';');
-    el('ap-string').textContent = str || 'Nenhum ponto ainda — toque no mapa.';
-    el('ap-count').textContent = `${adminPoints.length} ponto${adminPoints.length !== 1 ? 's' : ''}`;
-  }
-
-  el('ap-undo').addEventListener('click', () => { adminPoints.pop(); renderAdminPoints(); });
-  el('ap-clear').addEventListener('click', () => { adminPoints = []; renderAdminPoints(); });
+    renderCorridorGraph();
+    atualizarPainelCorredores();
+  });
+  el('ap-clear').addEventListener('click', () => {
+    CORREDOR_NODES = []; CORREDOR_EDGES = []; selectedNodeId = null;
+    renderCorridorGraph();
+    atualizarPainelCorredores();
+    el('ap-string').classList.remove('show');
+  });
   el('ap-copy').addEventListener('click', async () => {
-    const str = adminPoints.map(p => `${p.x},${p.y}`).join(';');
-    if(!str){ toast('Marque ao menos 2 pontos'); return; }
+    if(!CORREDOR_NODES.length){ toast('Marque ao menos 2 nós primeiro'); return; }
+    const linhas = ['tipo,id,x,y,de,para'];
+    CORREDOR_NODES.forEach(n => linhas.push(`no,${n.id},${n.x},${n.y},,`));
+    CORREDOR_EDGES.forEach(([a,b]) => linhas.push(`aresta,,,,${a},${b}`));
+    const texto = linhas.join('\n');
+    el('ap-string').textContent = texto;
+    el('ap-string').classList.add('show');
     try{
-      await navigator.clipboard.writeText(str);
-      toast('Copiado! Cole na coluna "rota" da planilha');
+      await navigator.clipboard.writeText(texto);
+      toast('Copiado! Cole numa aba "Corredores" da planilha');
     }catch(e){
-      toast('Não foi possível copiar automaticamente');
+      toast('Selecione e copie o texto abaixo manualmente');
     }
   });
   el('ap-done').addEventListener('click', () => el('btn-admin').click());
 
   /* =========================================================================
+     CLIQUE NO MAPA — roteia para o modo ativo (editor / marcar local)
+  ========================================================================= */
+  map.on('click', e => {
+    if(adminMode){
+      if(adminSubMode==='no'){
+        CORREDOR_NODES.push({ id: novoNodeId(), x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
+        renderCorridorGraph();
+        atualizarPainelCorredores();
+      }
+      return;
+    }
+    if(settingMeuLocal){
+      meuLocal = { x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) };
+      colocarMeuLocalMarker();
+      desativarModoMeuLocal();
+      atualizarLabelMeuLocal();
+      try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(err){}
+
+      if(pendingDestino){
+        const pontos = calcularCaminho(meuLocal, pendingDestino);
+        desenharCaminho(pontos);
+        pendingDestino = null;
+        toast('Caminho traçado no mapa');
+      } else {
+        toast('Local marcado! Escolha uma oferta para ver o caminho');
+      }
+    }
+  });
+
+  /* =========================================================================
      INÍCIO
   ========================================================================= */
   carregarOfertas();
+  carregarCorredores();
   </script>
 </body>
 </html>
