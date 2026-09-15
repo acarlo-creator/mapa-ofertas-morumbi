@@ -101,22 +101,22 @@
     const GID = "2013806288";
     const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
-    // Polígonos fixos das seções no mapa (Coordenadas reais do layout da loja Morumbi)
+    // Mapeamento Calibrado das Seções do Mapa Leroy Merlin Morumbi
     const SECOES_MAPA = {
-      "iluminacao": { x1: 200, x2: 380, y1: 200, y2: 350 },
-      "organizacao": { x1: 350, x2: 480, y1: 320, y2: 420 },
-      "decoracao": { x1: 200, x2: 360, y1: 360, y2: 580 },
-      "pisos": { x1: 200, x2: 350, y1: 600, y2: 750 },
-      "retirada": { x1: 200, x2: 360, y1: 760, y2: 880 },
-      "cozinhas": { x1: 370, x2: 530, y1: 520, y2: 680 },
-      "banheiros": { x1: 370, x2: 600, y1: 690, y2: 820 },
-      "tintas": { x1: 540, x2: 680, y1: 520, y2: 680 },
-      "jardim": { x1: 490, x2: 590, y1: 320, y2: 420 },
-      "ferramentas": { x1: 600, x2: 710, y1: 320, y2: 420 },
-      "ferragens": { x1: 690, x2: 800, y1: 520, y2: 680 },
-      "eletrica": { x1: 720, x2: 850, y1: 320, y2: 480 },
-      "madeiras": { x1: 720, x2: 830, y1: 690, y2: 820 },
-      "materiais": { x1: 540, x2: 730, y1: 830, y2: 960 }
+      "iluminacao":  { x1: 200, x2: 380, y1: 200, y2: 330 },
+      "decoracao":   { x1: 200, x2: 360, y1: 360, y2: 580 },
+      "pisos":       { x1: 200, x2: 350, y1: 600, y2: 750 },
+      "retirada":    { x1: 200, x2: 360, y1: 760, y2: 880 },
+      "organizacao": { x1: 370, x2: 480, y1: 340, y2: 450 },
+      "cozinhas":    { x1: 370, x2: 530, y1: 520, y2: 660 },
+      "banheiros":   { x1: 370, x2: 600, y1: 680, y2: 820 },
+      "jardim":      { x1: 490, x2: 600, y1: 340, y2: 450 },
+      "tintas":      { x1: 540, x2: 680, y1: 520, y2: 660 },
+      "ferramentas": { x1: 610, x2: 710, y1: 340, y2: 450 },
+      "ferragens":   { x1: 690, x2: 800, y1: 520, y2: 660 },
+      "eletrica":    { x1: 720, x2: 850, y1: 340, y2: 480 },
+      "madeiras":    { x1: 720, x2: 830, y1: 680, y2: 820 },
+      "materiais":   { x1: 540, x2: 730, y1: 830, y2: 960 }
     };
 
     const bounds = [[0, 0], [1000, 1000]];
@@ -150,11 +150,9 @@
         maxPlaca = partes[1] || 20;
       }
 
-      // Calcula a proporção da placa em relação ao total da seção (0 a 1)
       const totalPlacas = Math.max(maxPlaca - minPlaca + 1, 1);
       const proporcao = Math.min(Math.max((placaVal - minPlaca) / totalPlacas, 0), 1);
 
-      // Aplica a posição relativa dentro do quadrado da seção
       const posX = secao.x1 + (secao.x2 - secao.x1) * proporcao;
       const posY = secao.y1 + (secao.y2 - secao.y1) * (1 - proporcao);
 
