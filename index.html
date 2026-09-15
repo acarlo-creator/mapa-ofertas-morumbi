@@ -517,6 +517,7 @@
   let meuLocalMarker = null;
   let settingMeuLocal = false;
   let pendingDestino = null;    // {x,y} — destino aguardando o cliente marcar o local
+  let pendingDestinoSetorId = null;
 
   let CORREDOR_NODES = [];      // [{id,x,y}]
   let CORREDOR_EDGES = [];      // [[id,id]]
@@ -619,8 +620,14 @@
     markersPorSetor = {};
     Object.values(grupos).forEach(grupo => {
       const icon = criarIconeSetor(grupo.ofertas.length);
-      const marker = L.marker([grupo.y, grupo.x], { icon }).addTo(ofertasLayer);
-      marker.on('click', () => { if(!adminMode) abrirDetalhe(grupo.id_setor, 0); });
+      const marker = L.marker([grupo.y, grupo.x], { icon, zIndexOffset: adminMode ? 500 : 0 }).addTo(ofertasLayer);
+      marker.on('click', () => {
+        if(adminMode){
+          if(adminSubMode === 'aresta') selecionarNoParaConexao('setor:' + grupo.id_setor, grupo.x, grupo.y);
+          return;
+        }
+        abrirDetalhe(grupo.id_setor, 0);
+      });
       markersPorSetor[grupo.id_setor] = marker;
     });
   }
@@ -684,7 +691,8 @@
     }).addTo(map);
     meuLocalMarker.on('dragend', () => {
       const ll = meuLocalMarker.getLatLng();
-      meuLocal = { x: Math.round(ll.lng), y: Math.round(ll.lat) };
+      meuLocal = encaixarNoCorredor({ x: Math.round(ll.lng), y: Math.round(ll.lat) });
+      meuLocalMarker.setLatLng([meuLocal.y, meuLocal.x]);
       try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(e){}
     });
   }
@@ -727,6 +735,19 @@
     return best;
   }
 
+  // gruda o ponto marcado pelo cliente no corredor mais próximo (dentro de
+  // uma distância razoável), pra ele sempre partir de cima do corredor —
+  // não de um ponto solto no meio de uma seção.
+  const DISTANCIA_MAX_ENCAIXE = 140;
+  function encaixarNoCorredor(ponto){
+    const nos = CORREDOR_NODES.filter(n => !n.id.startsWith('setor:'));
+    if(!nos.length) return ponto;
+    let best=null, bestD=Infinity;
+    nos.forEach(n=>{ const d=Math.hypot(n.x-ponto.x,n.y-ponto.y); if(d<bestD){bestD=d;best=n;} });
+    if(best && bestD <= DISTANCIA_MAX_ENCAIXE) return { x: best.x, y: best.y };
+    return ponto;
+  }
+
   function dijkstra(startId, endId){
     const adj = buildAdjacency();
     const dist = {}, prev = {};
@@ -755,12 +776,24 @@
     return path.map(id=>CORREDOR_NODES.find(n=>n.id===id));
   }
 
-  function calcularCaminho(origem, destino){
+  function calcularCaminho(origem, destino, destinoSetorId){
     if(!CORREDOR_NODES.length) return [origem, destino];
     const nOrig = nearestNode(origem.x, origem.y);
-    const nDest = nearestNode(destino.x, destino.y);
-    if(!nOrig || !nDest) return [origem, destino];
-    const path = dijkstra(nOrig.id, nDest.id);
+
+    // se a seção de destino já foi conectada à malha no editor, usamos
+    // esse nó exato — evita "atalho" reto por cima de outras seções.
+    let nDestId = null;
+    if(destinoSetorId){
+      const noSetor = CORREDOR_NODES.find(n => n.id === 'setor:' + destinoSetorId);
+      if(noSetor) nDestId = noSetor.id;
+    }
+    if(!nDestId){
+      const nDest = nearestNode(destino.x, destino.y);
+      nDestId = nDest ? nDest.id : null;
+    }
+
+    if(!nOrig || !nDestId) return [origem, destino];
+    const path = dijkstra(nOrig.id, nDestId);
     if(!path) return [origem, destino];
     return [origem, ...path, destino];
   }
@@ -788,14 +821,15 @@
   }
   el('route-clear').addEventListener('click', () => desenharCaminho(null));
 
-  function tracarCaminhoPara(destino){
+  function tracarCaminhoPara(destino, destinoSetorId){
     if(meuLocal){
-      const pontos = calcularCaminho(meuLocal, destino);
+      const pontos = calcularCaminho(meuLocal, destino, destinoSetorId);
       desenharCaminho(pontos);
       closeSheets();
       toast(CORREDOR_NODES.length ? 'Caminho traçado no mapa' : 'Caminho traçado (linha direta)');
     } else {
       pendingDestino = destino;
+      pendingDestinoSetorId = destinoSetorId;
       closeSheets();
       ativarModoMeuLocal();
     }
@@ -847,7 +881,7 @@
           toast('Caminho traçado no mapa');
           return;
         }
-        tracarCaminhoPara({ x: grupo.x, y: grupo.y });
+        tracarCaminhoPara({ x: grupo.x, y: grupo.y }, grupo.id_setor);
       });
       carousel.appendChild(card);
 
@@ -920,7 +954,9 @@
 
   function renderCorridorGraph(){
     adminLayer.clearLayers();
-    CORREDOR_NODES.forEach(n => {
+    // pinos de oferta já aparecem via ofertasLayer — aqui só desenhamos os
+    // nós "livres" do corredor (não os que representam uma seção/oferta).
+    CORREDOR_NODES.filter(n => !n.id.startsWith('setor:')).forEach(n => {
       const marker = L.marker([n.y, n.x], {
         icon: L.divIcon({
           className: '',
@@ -931,18 +967,40 @@
       marker.on('click', (ev) => {
         L.DomEvent.stopPropagation(ev);
         if(!adminMode || adminSubMode !== 'aresta') return;
-        if(!selectedNodeId){ selectedNodeId = n.id; renderCorridorGraph(); return; }
-        if(selectedNodeId === n.id){ selectedNodeId = null; renderCorridorGraph(); return; }
-        CORREDOR_EDGES.push([selectedNodeId, n.id]);
-        selectedNodeId = null;
-        renderCorridorGraph();
-        atualizarPainelCorredores();
+        selecionarNoParaConexao(n.id, n.x, n.y);
       });
     });
+    // realça o pino de oferta selecionado como origem da conexão
+    if(selectedNodeId && selectedNodeId.startsWith('setor:')){
+      const grupoSel = grupos[selectedNodeId.slice(6)];
+      if(grupoSel){
+        L.circleMarker([grupoSel.y, grupoSel.x], { radius:20, color:'#FF6B00', weight:3, fill:false }).addTo(adminLayer);
+      }
+    }
     CORREDOR_EDGES.forEach(([a,b]) => {
       const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
       if(na && nb) L.polyline([[na.y,na.x],[nb.y,nb.x]], { color:'#16211A', weight:3, dashArray:'2,8' }).addTo(adminLayer);
     });
+  }
+
+  // usada tanto por nós "livres" do corredor quanto por pinos de oferta,
+  // para que uma seção possa ser ligada diretamente à malha de corredores
+  // — garantindo que o caminho entre nela pelo ponto certo, sem atravessar
+  // outras seções.
+  function registrarNoSetor(id, x, y){
+    const existente = CORREDOR_NODES.find(n => n.id === id);
+    if(existente){ existente.x = x; existente.y = y; }
+    else CORREDOR_NODES.push({ id, x, y, isSetor:true });
+  }
+
+  function selecionarNoParaConexao(id, x, y){
+    if(id.startsWith('setor:')) registrarNoSetor(id, x, y);
+    if(!selectedNodeId){ selectedNodeId = id; renderCorridorGraph(); toast('Agora toque no ponto do corredor para ligar'); return; }
+    if(selectedNodeId === id){ selectedNodeId = null; renderCorridorGraph(); return; }
+    CORREDOR_EDGES.push([selectedNodeId, id]);
+    selectedNodeId = null;
+    renderCorridorGraph();
+    atualizarPainelCorredores();
   }
 
   function atualizarPainelCorredores(){
@@ -954,7 +1012,7 @@
     el('ap-mode-aresta').classList.toggle('active', adminSubMode==='aresta');
     el('ap-hint').textContent = adminSubMode==='no'
       ? 'Toque no mapa para marcar um ponto do corredor.'
-      : 'Toque em 2 pontos, em sequência, para ligá-los.';
+      : 'Toque em 2 pontos em sequência para ligá-los — vale ligar direto num pino de oferta, pra garantir que o caminho entre na seção pelo lugar certo.';
   }
 
   el('btn-admin').addEventListener('click', () => {
@@ -1021,16 +1079,17 @@
       return;
     }
     if(settingMeuLocal){
-      meuLocal = { x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) };
+      meuLocal = encaixarNoCorredor({ x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
       colocarMeuLocalMarker();
       desativarModoMeuLocal();
       atualizarLabelMeuLocal();
       try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(err){}
 
       if(pendingDestino){
-        const pontos = calcularCaminho(meuLocal, pendingDestino);
+        const pontos = calcularCaminho(meuLocal, pendingDestino, pendingDestinoSetorId);
         desenharCaminho(pontos);
         pendingDestino = null;
+        pendingDestinoSetorId = null;
         toast('Caminho traçado no mapa');
       } else {
         toast('Local marcado! Escolha uma oferta para ver o caminho');
