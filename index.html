@@ -392,26 +392,39 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  /* Colunas da aba de OFERTAS (sem mudanças):
-     id_setor, nome_setor, ativo, titulo_campanha, produto_destaque,
-     preco_de, preco_por, foto_url, x, y, rota (opcional)
-     - Várias linhas com o mesmo id_setor viram 1 pino só, com carrossel.
-     - Só a 1ª linha do setor precisa ter x/y.
-     - "rota" continua opcional: se preenchida (formato "x,y;x,y"), essa
-       oferta usa esse caminho fixo. Se ficar vazia, o caminho é calculado
-       na hora, a partir de onde o cliente marcar "meu local" no mapa —
-       não é mais necessário cadastrar rota por oferta.
+  /* Colunas da aba de OFERTAS (nomes flexíveis — o app reconhece variações
+     de acento/espaço/underscore, então pode nomear do jeito que for mais
+     natural na planilha):
+       id_setor, nome_setor, placas_setor (opcional, ex: "1-20"),
+       placa_oferta, ativo, titulo_campanha, codigo_produto,
+       produto_destaque, preco_de, preco_por, foto_url
+     - "placa_oferta" é o número da placa/sinalização onde a oferta fica
+       dentro do setor (ex: 17). É esse número (junto com id_setor) que
+       o app usa pra achar a posição exata no mapa e traçar o caminho —
+       não precisa mais de x/y na aba de Ofertas.
+     - Várias linhas com o mesmo id_setor + mesma placa_oferta viram 1
+       pino só, com carrossel. Placas diferentes = pinos diferentes,
+       cada oferta aparece no lugar certo dentro do setor.
+     - "placas_setor" é só informativo (quantas placas o setor tem ao
+       todo), não é usado pelo cálculo do caminho.
 
-     Aba opcional "Corredores" (para caminhos mais realistas, seguindo os
-     corredores da loja em vez de linha reta) — crie com as colunas:
-     tipo,id,x,y,de,para
-       linha de nó:    no,n1,120,300,,
-       linha de conexão: aresta,,,,n1,n2
-     Use o botão de corredores (ícone no topo) para desenhar essa malha
-     tocando no mapa e o botão "Exportar" já gera essas linhas prontas
-     pra colar na planilha. Depois, coloque o GID dessa aba em
-     CORREDOR_GID acima. Sem essa aba configurada, o caminho é traçado
-     em linha reta — já funciona, só fica menos "andando pelos corredores". */
+     Aba "Corredores" (obrigatória para o caminho seguir os corredores
+     em vez de linha reta) — crie com as colunas:
+     tipo,id,x,y,de,para,setor,placa
+       nó de corredor (só passagem):  no,n1,120,300,,,,
+       nó de placa (é uma oferta):    no,n17,650,440,,,iluminacao,17
+       aresta (liga dois nós):        aresta,,,,n1,n2,,
+     "setor" e "placa" num nó dizem "aqui é a placa X do setor Y" — tem
+     que bater exatamente com id_setor e placa_oferta da aba Ofertas.
+     Ligue esse nó por arestas até o corredor principal, e o corredor
+     principal até os pontos onde o cliente costuma partir. Assim o
+     caminho todo — até dentro do setor — segue os nós, nunca corta por
+     cima de outra seção.
+     Use o botão de corredores (ícone no topo) pra desenhar essa malha
+     tocando no mapa — ao criar um nó ele pergunta se é uma placa (e de
+     qual setor/número) — e o botão "Exportar" já gera essas linhas
+     prontas pra colar na planilha. Depois, coloque o GID dessa aba em
+     CORREDOR_GID abaixo. */
 
   /* =========================================================================
      MAPA BASE
@@ -517,7 +530,6 @@
   let meuLocalMarker = null;
   let settingMeuLocal = false;
   let pendingDestino = null;    // {x,y} — destino aguardando o cliente marcar o local
-  let pendingDestinoSetorId = null;
 
   let CORREDOR_NODES = [];      // [{id,x,y}]
   let CORREDOR_EDGES = [];      // [[id,id]]
@@ -531,6 +543,30 @@
     const saved = localStorage.getItem('lm_meu_local');
     if(saved) meuLocal = JSON.parse(saved);
   }catch(e){}
+
+  function normKey(s){
+    return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
+  const CAMPOS_OFERTA = {
+    id_setor: ['idsetor','idsecao','idsecoes','idseção','id'],
+    nome_setor: ['nomesetor','setornome','nome','setor'],
+    placas_setor: ['placasdosetor','placassetor','placasetor','placas'],
+    placa_oferta: ['placadaoferta','placaoferta','placa','numplaca','numeroplaca'],
+    ativo: ['ativo'],
+    titulo_campanha: ['titulodacampanha','titulocampanha','titulo','campanha'],
+    codigo_produto: ['codigodoproduto','codigoproduto','codigo','sku'],
+    produto_destaque: ['produtodestaque','produto'],
+    preco_de: ['precode'],
+    preco_por: ['precopor'],
+    foto_url: ['fotourl','foto','imagem','imagemurl'],
+    x: ['x'], y: ['y'], rota: ['rota'], corredor: ['corredor','corredores']
+  };
+
+  function encontrarNoDaPlaca(idSetor, placa){
+    const s = String(idSetor||'').trim().toLowerCase(), p = String(placa||'').trim().toLowerCase();
+    if(!s || !p) return null;
+    return CORREDOR_NODES.find(n => (n.setor||'').trim().toLowerCase()===s && String(n.placa||'').trim().toLowerCase()===p) || null;
+  }
 
   /* =========================================================================
      CARREGAR E AGRUPAR OFERTAS
@@ -546,7 +582,16 @@
       if(lines.length < 2){ mostrarEstado('empty'); return; }
 
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const headerMap = {}; // campo canônico -> nome real do cabeçalho na planilha
+      headers.forEach(h => {
+        const n = normKey(h);
+        for(const canon in CAMPOS_OFERTA){
+          if(CAMPOS_OFERTA[canon].includes(n)){ headerMap[canon] = h; break; }
+        }
+      });
+
       grupos = {};
+      const placasNaoEncontradas = [];
 
       for(let i = 1; i < lines.length; i++){
         const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -556,22 +601,45 @@
           val = val.replace(/^"|"$/g, '');
           item[h] = val;
         });
+        // espelha nos nomes canônicos — assim o resto do app usa sempre
+        // oferta.preco_de, oferta.titulo_campanha etc., não importa como
+        // a coluna foi nomeada de verdade na planilha
+        Object.keys(headerMap).forEach(canon => { item[canon] = item[headerMap[canon]]; });
 
         if(String(item.ativo).trim() !== '1') continue;
 
-        const chave = (item.id_setor || item.nome_setor || ('setor_' + i)).trim();
+        const idSetor = (item.id_setor || item.nome_setor || ('setor_' + i)).trim();
+        const placaOferta = (item.placa_oferta || '').trim();
+        const chave = idSetor + '::' + (placaOferta || ('linha' + i));
+
         if(!grupos[chave]){
-          grupos[chave] = { id_setor: chave, nome_setor: item.nome_setor || chave, x: null, y: null, ofertas: [] };
+          grupos[chave] = {
+            chave, id_setor: idSetor, nome_setor: item.nome_setor || idSetor,
+            placa: placaOferta, placas_setor: item.placas_setor || '',
+            x: null, y: null, nodeId: null, corredor: '', ofertas: []
+          };
         }
         grupos[chave].ofertas.push(item);
 
         if(grupos[chave].x === null){
           const px = parseFloat(item.x), py = parseFloat(item.y);
-          if(!isNaN(px) && !isNaN(py)){ grupos[chave].x = px; grupos[chave].y = py; }
+          if(!isNaN(px) && !isNaN(py)){
+            // x/y explícitos na planilha (modelo antigo) têm prioridade
+            grupos[chave].x = px; grupos[chave].y = py;
+          } else if(placaOferta){
+            const no = encontrarNoDaPlaca(idSetor, placaOferta);
+            if(no){ grupos[chave].x = no.x; grupos[chave].y = no.y; grupos[chave].nodeId = no.id; }
+            else placasNaoEncontradas.push(`${idSetor} · placa ${placaOferta}`);
+          }
+          const valCorredor = item.corredor;
+          if(valCorredor && valCorredor.trim() !== '') grupos[chave].corredor = valCorredor.trim();
         }
       }
 
       Object.keys(grupos).forEach(k => { if(grupos[k].x === null) delete grupos[k]; });
+      if(placasNaoEncontradas.length){
+        console.warn('Placas sem nó correspondente na aba Corredores (pino não desenhado):', placasNaoEncontradas);
+      }
 
       const totalGrupos = Object.keys(grupos).length;
       if(totalGrupos === 0){ mostrarEstado('empty'); return; }
@@ -604,7 +672,12 @@
         headers.forEach((h, idx) => { row[h] = values[idx] ? values[idx].trim().replace(/^"|"$/g, '') : ''; });
         if(row.tipo === 'no' && row.id){
           const x = parseFloat(row.x), y = parseFloat(row.y);
-          if(!isNaN(x) && !isNaN(y)) nodes.push({ id: row.id, x, y });
+          if(!isNaN(x) && !isNaN(y)) nodes.push({
+            id: row.id, x, y,
+            corredor: (row.corredor||row.corredores||'').trim(),
+            setor: (row.setor||'').trim(),
+            placa: (row.placa||'').trim()
+          });
         } else if(row.tipo === 'aresta' && row.de && row.para){
           edges.push([row.de, row.para]);
         }
@@ -620,30 +693,32 @@
     markersPorSetor = {};
     Object.values(grupos).forEach(grupo => {
       const icon = criarIconeSetor(grupo.ofertas.length);
-      const marker = L.marker([grupo.y, grupo.x], { icon, zIndexOffset: adminMode ? 500 : 0 }).addTo(ofertasLayer);
-      marker.on('click', () => {
-        if(adminMode){
-          if(adminSubMode === 'aresta') selecionarNoParaConexao('setor:' + grupo.id_setor, grupo.x, grupo.y);
-          return;
-        }
-        abrirDetalhe(grupo.id_setor, 0);
-      });
-      markersPorSetor[grupo.id_setor] = marker;
+      const marker = L.marker([grupo.y, grupo.x], { icon }).addTo(ofertasLayer);
+      marker.on('click', () => { if(!adminMode) abrirDetalhe(grupo.chave, 0); });
+      markersPorSetor[grupo.chave] = marker;
     });
   }
 
   function montarChips(){
     const wrap = el('chips');
     wrap.innerHTML = '';
+    // se o mesmo setor tiver mais de uma placa/pino, mostra o número da
+    // placa no chip pra diferenciar; senão só o nome do setor
+    const porSetor = {};
+    Object.values(grupos).forEach(g => { (porSetor[g.nome_setor] = porSetor[g.nome_setor]||[]).push(g); });
+
     Object.values(grupos)
-      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
+      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR') || String(a.placa).localeCompare(String(b.placa),'pt-BR'))
       .forEach(grupo => {
         const chip = document.createElement('button');
         chip.className = 'chip';
-        chip.innerHTML = `${grupo.nome_setor}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
+        const rotulo = porSetor[grupo.nome_setor].length > 1 && grupo.placa
+          ? `${grupo.nome_setor} · ${grupo.placa}`
+          : grupo.nome_setor;
+        chip.innerHTML = `${rotulo}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
         chip.addEventListener('click', () => {
           map.flyTo([grupo.y, grupo.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
-          abrirDetalhe(grupo.id_setor, 0);
+          abrirDetalhe(grupo.chave, 0);
         });
         wrap.appendChild(chip);
       });
@@ -669,7 +744,7 @@
       el('state-text').textContent = 'Não foi possível carregar as ofertas agora.';
     }
   }
-  el('state-retry').addEventListener('click', carregarOfertas);
+  el('state-retry').addEventListener('click', iniciarCarga);
 
   /* =========================================================================
      "MEU LOCAL" — o cliente marca de onde está partindo
@@ -691,8 +766,7 @@
     }).addTo(map);
     meuLocalMarker.on('dragend', () => {
       const ll = meuLocalMarker.getLatLng();
-      meuLocal = encaixarNoCorredor({ x: Math.round(ll.lng), y: Math.round(ll.lat) });
-      meuLocalMarker.setLatLng([meuLocal.y, meuLocal.x]);
+      meuLocal = { x: Math.round(ll.lng), y: Math.round(ll.lat) };
       try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(e){}
     });
   }
@@ -728,24 +802,24 @@
     return adj;
   }
 
-  function nearestNode(x,y){
+  function nearestNode(x, y, corredor){
     if(!CORREDOR_NODES.length) return null;
+    // Se a oferta informa um corredor, prioriza nós da malha marcados com
+    // o MESMO corredor — assim a rota entra na seção pela porta certa em
+    // vez de pelo nó geometricamente mais perto (que pode ser de outra
+    // seção e obrigar o traçado a cortar por cima dela).
+    if(corredor){
+      const alvo = corredor.trim().toLowerCase();
+      const doCorredor = CORREDOR_NODES.filter(n => (n.corredor||'').toLowerCase() === alvo);
+      if(doCorredor.length){
+        let best=null, bestD=Infinity;
+        doCorredor.forEach(n=>{ const d=Math.hypot(n.x-x,n.y-y); if(d<bestD){bestD=d;best=n;} });
+        return best;
+      }
+    }
     let best=null, bestD=Infinity;
     CORREDOR_NODES.forEach(n=>{ const d=Math.hypot(n.x-x,n.y-y); if(d<bestD){bestD=d;best=n;} });
     return best;
-  }
-
-  // gruda o ponto marcado pelo cliente no corredor mais próximo (dentro de
-  // uma distância razoável), pra ele sempre partir de cima do corredor —
-  // não de um ponto solto no meio de uma seção.
-  const DISTANCIA_MAX_ENCAIXE = 140;
-  function encaixarNoCorredor(ponto){
-    const nos = CORREDOR_NODES.filter(n => !n.id.startsWith('setor:'));
-    if(!nos.length) return ponto;
-    let best=null, bestD=Infinity;
-    nos.forEach(n=>{ const d=Math.hypot(n.x-ponto.x,n.y-ponto.y); if(d<bestD){bestD=d;best=n;} });
-    if(best && bestD <= DISTANCIA_MAX_ENCAIXE) return { x: best.x, y: best.y };
-    return ponto;
   }
 
   function dijkstra(startId, endId){
@@ -776,24 +850,14 @@
     return path.map(id=>CORREDOR_NODES.find(n=>n.id===id));
   }
 
-  function calcularCaminho(origem, destino, destinoSetorId){
+  function calcularCaminho(origem, destino){
     if(!CORREDOR_NODES.length) return [origem, destino];
     const nOrig = nearestNode(origem.x, origem.y);
-
-    // se a seção de destino já foi conectada à malha no editor, usamos
-    // esse nó exato — evita "atalho" reto por cima de outras seções.
-    let nDestId = null;
-    if(destinoSetorId){
-      const noSetor = CORREDOR_NODES.find(n => n.id === 'setor:' + destinoSetorId);
-      if(noSetor) nDestId = noSetor.id;
-    }
-    if(!nDestId){
-      const nDest = nearestNode(destino.x, destino.y);
-      nDestId = nDest ? nDest.id : null;
-    }
-
-    if(!nOrig || !nDestId) return [origem, destino];
-    const path = dijkstra(nOrig.id, nDestId);
+    const nDest = destino.nodeId
+      ? CORREDOR_NODES.find(n => n.id === destino.nodeId)
+      : nearestNode(destino.x, destino.y, destino.corredor);
+    if(!nOrig || !nDest) return [origem, destino];
+    const path = dijkstra(nOrig.id, nDest.id);
     if(!path) return [origem, destino];
     return [origem, ...path, destino];
   }
@@ -821,15 +885,14 @@
   }
   el('route-clear').addEventListener('click', () => desenharCaminho(null));
 
-  function tracarCaminhoPara(destino, destinoSetorId){
+  function tracarCaminhoPara(destino){
     if(meuLocal){
-      const pontos = calcularCaminho(meuLocal, destino, destinoSetorId);
+      const pontos = calcularCaminho(meuLocal, destino);
       desenharCaminho(pontos);
       closeSheets();
       toast(CORREDOR_NODES.length ? 'Caminho traçado no mapa' : 'Caminho traçado (linha direta)');
     } else {
       pendingDestino = destino;
-      pendingDestinoSetorId = destinoSetorId;
       closeSheets();
       ativarModoMeuLocal();
     }
@@ -838,8 +901,8 @@
   /* =========================================================================
      SHEET — DETALHE DA OFERTA (carrossel)
   ========================================================================= */
-  function abrirDetalhe(idSetor, indice){
-    const grupo = grupos[idSetor];
+  function abrirDetalhe(chaveGrupo, indice){
+    const grupo = grupos[chaveGrupo];
     if(!grupo) return;
 
     const carousel = el('carousel');
@@ -881,7 +944,7 @@
           toast('Caminho traçado no mapa');
           return;
         }
-        tracarCaminhoPara({ x: grupo.x, y: grupo.y }, grupo.id_setor);
+        tracarCaminhoPara({ x: grupo.x, y: grupo.y, corredor: grupo.corredor || '', nodeId: grupo.nodeId || null });
       });
       carousel.appendChild(card);
 
@@ -939,7 +1002,7 @@
           `;
           row.addEventListener('click', () => {
             map.flyTo([grupo.y, grupo.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
-            abrirDetalhe(grupo.id_setor, i);
+            abrirDetalhe(grupo.chave, i);
           });
           inner.appendChild(row);
         });
@@ -954,53 +1017,29 @@
 
   function renderCorridorGraph(){
     adminLayer.clearLayers();
-    // pinos de oferta já aparecem via ofertasLayer — aqui só desenhamos os
-    // nós "livres" do corredor (não os que representam uma seção/oferta).
-    CORREDOR_NODES.filter(n => !n.id.startsWith('setor:')).forEach(n => {
+    CORREDOR_NODES.forEach(n => {
       const marker = L.marker([n.y, n.x], {
         icon: L.divIcon({
           className: '',
-          html: `<div class="node-pt${n.id===selectedNodeId ? ' selected':''}">${n.id.replace('n','')}</div>`,
+          html: `<div class="node-pt${n.id===selectedNodeId ? ' selected':''}" title="${n.setor ? (n.setor+' · placa '+n.placa) : (n.corredor||'')}">${n.id.replace('n','')}${n.setor ? '*' : ''}</div>`,
           iconSize:[22,22], iconAnchor:[11,11]
         })
       }).addTo(adminLayer);
       marker.on('click', (ev) => {
         L.DomEvent.stopPropagation(ev);
         if(!adminMode || adminSubMode !== 'aresta') return;
-        selecionarNoParaConexao(n.id, n.x, n.y);
+        if(!selectedNodeId){ selectedNodeId = n.id; renderCorridorGraph(); return; }
+        if(selectedNodeId === n.id){ selectedNodeId = null; renderCorridorGraph(); return; }
+        CORREDOR_EDGES.push([selectedNodeId, n.id]);
+        selectedNodeId = null;
+        renderCorridorGraph();
+        atualizarPainelCorredores();
       });
     });
-    // realça o pino de oferta selecionado como origem da conexão
-    if(selectedNodeId && selectedNodeId.startsWith('setor:')){
-      const grupoSel = grupos[selectedNodeId.slice(6)];
-      if(grupoSel){
-        L.circleMarker([grupoSel.y, grupoSel.x], { radius:20, color:'#FF6B00', weight:3, fill:false }).addTo(adminLayer);
-      }
-    }
     CORREDOR_EDGES.forEach(([a,b]) => {
       const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
       if(na && nb) L.polyline([[na.y,na.x],[nb.y,nb.x]], { color:'#16211A', weight:3, dashArray:'2,8' }).addTo(adminLayer);
     });
-  }
-
-  // usada tanto por nós "livres" do corredor quanto por pinos de oferta,
-  // para que uma seção possa ser ligada diretamente à malha de corredores
-  // — garantindo que o caminho entre nela pelo ponto certo, sem atravessar
-  // outras seções.
-  function registrarNoSetor(id, x, y){
-    const existente = CORREDOR_NODES.find(n => n.id === id);
-    if(existente){ existente.x = x; existente.y = y; }
-    else CORREDOR_NODES.push({ id, x, y, isSetor:true });
-  }
-
-  function selecionarNoParaConexao(id, x, y){
-    if(id.startsWith('setor:')) registrarNoSetor(id, x, y);
-    if(!selectedNodeId){ selectedNodeId = id; renderCorridorGraph(); toast('Agora toque no ponto do corredor para ligar'); return; }
-    if(selectedNodeId === id){ selectedNodeId = null; renderCorridorGraph(); return; }
-    CORREDOR_EDGES.push([selectedNodeId, id]);
-    selectedNodeId = null;
-    renderCorridorGraph();
-    atualizarPainelCorredores();
   }
 
   function atualizarPainelCorredores(){
@@ -1012,7 +1051,7 @@
     el('ap-mode-aresta').classList.toggle('active', adminSubMode==='aresta');
     el('ap-hint').textContent = adminSubMode==='no'
       ? 'Toque no mapa para marcar um ponto do corredor.'
-      : 'Toque em 2 pontos em sequência para ligá-los — vale ligar direto num pino de oferta, pra garantir que o caminho entre na seção pelo lugar certo.';
+      : 'Toque em 2 pontos, em sequência, para ligá-los.';
   }
 
   el('btn-admin').addEventListener('click', () => {
@@ -1051,9 +1090,9 @@
   });
   el('ap-copy').addEventListener('click', async () => {
     if(!CORREDOR_NODES.length){ toast('Marque ao menos 2 nós primeiro'); return; }
-    const linhas = ['tipo,id,x,y,de,para'];
-    CORREDOR_NODES.forEach(n => linhas.push(`no,${n.id},${n.x},${n.y},,`));
-    CORREDOR_EDGES.forEach(([a,b]) => linhas.push(`aresta,,,,${a},${b}`));
+    const linhas = ['tipo,id,x,y,de,para,setor,placa'];
+    CORREDOR_NODES.forEach(n => linhas.push(`no,${n.id},${n.x},${n.y},,,${n.setor||''},${n.placa||''}`));
+    CORREDOR_EDGES.forEach(([a,b]) => linhas.push(`aresta,,,,${a},${b},,`));
     const texto = linhas.join('\n');
     el('ap-string').textContent = texto;
     el('ap-string').classList.add('show');
@@ -1072,24 +1111,25 @@
   map.on('click', e => {
     if(adminMode){
       if(adminSubMode==='no'){
-        CORREDOR_NODES.push({ id: novoNodeId(), x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
+        const setor = (prompt('Este nó é uma placa de oferta? Se sim, id_setor (deixe em branco se for só um ponto de passagem do corredor):') || '').trim();
+        const placa = setor ? (prompt(`Número da placa dentro do setor "${setor}":`) || '').trim() : '';
+        CORREDOR_NODES.push({ id: novoNodeId(), x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat), setor, placa });
         renderCorridorGraph();
         atualizarPainelCorredores();
       }
       return;
     }
     if(settingMeuLocal){
-      meuLocal = encaixarNoCorredor({ x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
+      meuLocal = { x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) };
       colocarMeuLocalMarker();
       desativarModoMeuLocal();
       atualizarLabelMeuLocal();
       try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(err){}
 
       if(pendingDestino){
-        const pontos = calcularCaminho(meuLocal, pendingDestino, pendingDestinoSetorId);
+        const pontos = calcularCaminho(meuLocal, pendingDestino);
         desenharCaminho(pontos);
         pendingDestino = null;
-        pendingDestinoSetorId = null;
         toast('Caminho traçado no mapa');
       } else {
         toast('Local marcado! Escolha uma oferta para ver o caminho');
@@ -1100,8 +1140,11 @@
   /* =========================================================================
      INÍCIO
   ========================================================================= */
-  carregarOfertas();
-  carregarCorredores();
+  async function iniciarCarga(){
+    await carregarCorredores();
+    await carregarOfertas();
+  }
+  iniciarCarga();
   </script>
 </body>
 </html>
