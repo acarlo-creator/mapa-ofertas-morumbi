@@ -32,6 +32,19 @@
 
     #map { width: 100vw; height: calc(100vh - 75px); margin-top: 75px; background: #0b0f19; z-index: 1; }
 
+    /* Ponto GPS Azul Discreto */
+    .gps-user-pin {
+      width: 16px; height: 16px; background: #38bdf8; border-radius: 50%;
+      border: 3px solid #ffffff; box-shadow: 0 0 12px #38bdf8;
+      animation: gpsPulse 1.8s infinite;
+    }
+    @keyframes gpsPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+
+    /* Pins Neon de Ofertas */
     .custom-neon-pin {
       width: 22px; height: 22px; background: #00e65c; border-radius: 50%;
       border: 3px solid #ffffff; box-shadow: 0 0 15px #00e65c;
@@ -44,6 +57,7 @@
       to { box-shadow: 0 0 18px #00e65c; }
     }
 
+    /* Popups Clean */
     .leaflet-popup-content-wrapper { 
       border-radius: 12px; padding: 0; overflow: hidden; 
       background: rgba(15, 23, 42, 0.95) !important; color: #fff;
@@ -101,22 +115,23 @@
     const GID = "2013806288";
     const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
-    // Mapeamento Calibrado das Seções do Mapa Leroy Merlin Morumbi
+    // COORDENADAS REAIS DOS RETÂNGULOS DAS SEÇÕES (Visualmente calibrados com a imagem)
+    // x1, x2 = Limites Esquerda/Direita | y1, y2 = Limites Superior/Inferior
     const SECOES_MAPA = {
-      "iluminacao":  { x1: 200, x2: 380, y1: 200, y2: 330 },
-      "decoracao":   { x1: 200, x2: 360, y1: 360, y2: 580 },
-      "pisos":       { x1: 200, x2: 350, y1: 600, y2: 750 },
-      "retirada":    { x1: 200, x2: 360, y1: 760, y2: 880 },
-      "organizacao": { x1: 370, x2: 480, y1: 340, y2: 450 },
-      "cozinhas":    { x1: 370, x2: 530, y1: 520, y2: 660 },
-      "banheiros":   { x1: 370, x2: 600, y1: 680, y2: 820 },
-      "jardim":      { x1: 490, x2: 600, y1: 340, y2: 450 },
-      "tintas":      { x1: 540, x2: 680, y1: 520, y2: 660 },
-      "ferramentas": { x1: 610, x2: 710, y1: 340, y2: 450 },
-      "ferragens":   { x1: 690, x2: 800, y1: 520, y2: 660 },
-      "eletrica":    { x1: 720, x2: 850, y1: 340, y2: 480 },
-      "madeiras":    { x1: 720, x2: 830, y1: 680, y2: 820 },
-      "materiais":   { x1: 540, x2: 730, y1: 830, y2: 960 }
+      "iluminacao":  { x1: 360, x2: 480, y1: 750, y2: 860 },
+      "organizacao": { x1: 495, x2: 605, y1: 670, y2: 745 },
+      "decoracao":   { x1: 360, x2: 485, y1: 585, y2: 745 },
+      "pisos":       { x1: 350, x2: 485, y1: 450, y2: 580 },
+      "retirada":    { x1: 350, x2: 485, y1: 320, y2: 430 },
+      "cozinhas":    { x1: 495, x2: 600, y1: 520, y2: 620 },
+      "banheiros":   { x1: 495, x2: 720, y1: 375, y2: 500 },
+      "tintas":      { x1: 610, x2: 715, y1: 520, y2: 620 },
+      "jardim":      { x1: 615, x2: 700, y1: 635, y2: 745 },
+      "ferramentas": { x1: 710, x2: 805, y1: 635, y2: 745 },
+      "ferragens":   { x1: 745, x2: 840, y1: 520, y2: 630 },
+      "eletrica":    { x1: 745, x2: 855, y1: 635, y2: 755 },
+      "madeiras":    { x1: 745, x2: 855, y1: 240, y2: 500 },
+      "materiais":   { x1: 545, x2: 705, y1: 240, y2: 350 }
     };
 
     const bounds = [[0, 0], [1000, 1000]];
@@ -134,9 +149,9 @@
 
     let linhaRotaAtual = null;
     let marcadorOrigem = null;
-    const CORREDOR_CENTRAL = [450, 450];
+    const CORREDOR_CENTRAL = [490, 500];
 
-    // Calcula a posição exata da placa distribuindo-a dentro da faixa (range) da seção
+    // Calcula a posição exata interpolada dentro da caixa da Seção
     function obterCoordenadaPorPlaca(setorKey, placaNumStr, rangeStr) {
       const secao = SECOES_MAPA[setorKey];
       if (!secao) return null;
@@ -153,15 +168,16 @@
       const totalPlacas = Math.max(maxPlaca - minPlaca + 1, 1);
       const proporcao = Math.min(Math.max((placaVal - minPlaca) / totalPlacas, 0), 1);
 
+      // Interpolação dentro dos limites exatos do retângulo colorido da seção
       const posX = secao.x1 + (secao.x2 - secao.x1) * proporcao;
-      const posY = secao.y1 + (secao.y2 - secao.y1) * (1 - proporcao);
+      const posY = secao.y1 + (secao.y2 - secao.y1) * proporcao;
 
       return { x: Math.round(posX), y: Math.round(posY) };
     }
 
     function obterCoordenadaSetor(setorKey) {
       const secao = SECOES_MAPA[setorKey];
-      if (!secao) return [430, 140];
+      if (!secao) return [430, 800];
       return [(secao.x1 + secao.x2) / 2, (secao.y1 + secao.y2) / 2];
     }
 
@@ -172,13 +188,12 @@
       if (marcadorOrigem) map.removeLayer(marcadorOrigem);
       
       const origemIcon = L.divIcon({
-        className: '',
-        html: '<div style="background:#38bdf8; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 10px #38bdf8;"></div>',
+        className: 'gps-user-pin',
         iconSize: [16, 16],
         iconAnchor: [8, 8]
       });
 
-      marcadorOrigem = L.marker([y, x], { icon: origemIcon }).addTo(map).bindTooltip("Você está aqui", { permanent: true, direction: "top" });
+      marcadorOrigem = L.marker([y, x], { icon: origemIcon }).addTo(map);
     }
 
     function GERAR_ROTA_AUTOMATICA(destX, destY) {
