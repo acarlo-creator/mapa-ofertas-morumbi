@@ -1,297 +1,1107 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mapa de Ofertas - Leroy Merlin Morumbi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0F5C2E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>Mapa de Ofertas · Leroy Merlin Morumbi</title>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    * { box-sizing: border-box; }
-    body, html { 
-      margin: 0; padding: 0; width: 100%; height: 100%; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-      background: #0b0f19; color: #fff; overflow: hidden;
-    }
-    
-    #header {
-      position: absolute; top: 10px; left: 10px; right: 10px; height: 55px;
-      background: rgba(15, 23, 42, 0.9); display: flex; align-items: center;
-      justify-content: space-between; padding: 0 12px; z-index: 1000;
-      border-radius: 10px; border: 1px solid rgba(0, 230, 92, 0.4);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); backdrop-filter: blur(12px);
-    }
-    
-    .origem-selector { display: flex; align-items: center; gap: 6px; }
-    .origem-selector label { font-size: 11px; font-weight: 800; color: #00e65c; text-transform: uppercase; }
-    .origem-selector select {
-      background: #1e293b; color: #fff; border: 1px solid rgba(0, 230, 92, 0.5);
-      padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; outline: none;
-    }
+<style>
+  :root{
+    --lm-green:        #1E8A3C;
+    --lm-green-deep:    #0F5C2E;
+    --lm-green-soft:    #E6F4EA;
+    --lm-orange:        #FF6B00;
+    --ink:              #16211A;
+    --ink-soft:         #5B685F;
+    --line:             rgba(22,33,26,0.10);
+    --paper:            #FFFFFF;
+    --paper-warm:       #F6F7F3;
+    --map-bg:           #E8EAE3;
+    --shadow-lg:        0 18px 40px rgba(15,45,25,0.22);
+    --shadow-sm:        0 4px 14px rgba(15,45,25,0.14);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
 
-    #map { width: 100vw; height: calc(100vh - 75px); margin-top: 75px; background: #0b0f19; z-index: 1; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--map-bg); color:var(--ink); overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.brand,.price-now,.chip-count,.badge-count{ font-family:'Poppins',sans-serif; }
+  button{ font-family:inherit; }
 
-    /* Ponto GPS Azul Discreto */
-    .gps-user-pin {
-      width: 16px; height: 16px; background: #38bdf8; border-radius: 50%;
-      border: 3px solid #ffffff; box-shadow: 0 0 12px #38bdf8;
-      animation: gpsPulse 1.8s infinite;
-    }
-    @keyframes gpsPulse {
-      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
-      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
-      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-    }
+  /* ---------- MAP ---------- */
+  #map{ position:absolute; inset:0; background:var(--map-bg); z-index:1; }
+  .leaflet-container{ background:var(--map-bg); }
 
-    /* Pins Neon de Ofertas */
-    .custom-neon-pin {
-      width: 22px; height: 22px; background: #00e65c; border-radius: 50%;
-      border: 3px solid #ffffff; box-shadow: 0 0 15px #00e65c;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 900; color: #0b0f19;
-      animation: pinGlow 1.5s infinite alternate; cursor: pointer;
-    }
-    @keyframes pinGlow {
-      from { box-shadow: 0 0 6px #00e65c; }
-      to { box-shadow: 0 0 18px #00e65c; }
-    }
+  /* ---------- TOP BAR ---------- */
+  #topbar{
+    position:absolute; top:0; left:0; right:0; z-index:900;
+    padding:calc(12px + var(--safe-t)) 14px 46px;
+    background:linear-gradient(180deg, rgba(10,20,13,0.72) 0%, rgba(10,20,13,0.38) 65%, rgba(10,20,13,0) 100%);
+    pointer-events:none;
+  }
+  #topbar .row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    pointer-events:auto;
+  }
+  .brand{ display:flex; flex-direction:column; line-height:1; color:#fff; }
+  .brand b{ font-size:15px; font-weight:800; letter-spacing:0.2px; }
+  .brand span{ font-family:'Inter',sans-serif; font-size:11px; font-weight:500; color:#CFEBD8; margin-top:3px; }
 
-    /* Popups Clean */
-    .leaflet-popup-content-wrapper { 
-      border-radius: 12px; padding: 0; overflow: hidden; 
-      background: rgba(15, 23, 42, 0.95) !important; color: #fff;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.7); border: 1px solid rgba(0, 230, 92, 0.4); 
-    }
-    .leaflet-popup-tip { background: rgba(15, 23, 42, 0.95); }
-    .leaflet-popup-content { margin: 0 !important; width: 220px !important; }
-    
-    .card-oferta { padding: 14px; text-align: center; }
-    .card-oferta .tag-placa {
-      display: inline-block; background: #00e65c; color: #0b0f19; 
-      font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 4px; 
-      text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;
-    }
-    .card-oferta h3 { margin: 0 0 6px 0; font-size: 14px; color: #ffffff; font-weight: 700; line-height: 1.2; }
-    .card-oferta img { width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin: 4px 0; border: 1px solid rgba(255,255,255,0.1); }
-    .card-oferta .preco-container { margin-top: 6px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 6px; }
-    .card-oferta .preco-de { text-decoration: line-through; color: #64748b; font-size: 10px; }
-    .card-oferta .preco-por { color: #00e65c; font-size: 18px; font-weight: 900; }
-    
-    .btn-rota {
-      margin-top: 10px; width: 100%; background: #00e65c; color: #0b0f19;
-      border: none; padding: 9px; border-radius: 6px; font-weight: 900;
-      cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 4px;
-      text-transform: uppercase; transition: all 0.2s;
-    }
-    .btn-rota:hover { background: #00c74e; }
-  </style>
+  .icon-btn{
+    width:38px; height:38px; border-radius:11px; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.14); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    box-shadow:0 2px 10px rgba(0,0,0,0.18); flex-shrink:0;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .icon-btn:active{ transform:scale(0.92); background:rgba(255,255,255,0.26); }
+  .icon-btn.on{ background:var(--lm-orange); }
+
+  .status-pill{
+    display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.14);
+    backdrop-filter:blur(6px); color:#fff; font-size:11.5px; font-weight:600;
+    padding:6px 10px 6px 8px; border-radius:20px; pointer-events:auto; white-space:nowrap;
+  }
+  .status-pill .dot{ width:7px; height:7px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
+
+  /* ---------- SECTOR CHIPS ---------- */
+  #chips{
+    margin-top:10px; display:flex; gap:8px; overflow-x:auto; pointer-events:auto;
+    padding:2px 1px 6px; scrollbar-width:none;
+  }
+  #chips::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex-shrink:0; display:flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.92); border:1px solid rgba(255,255,255,0.5);
+    color:var(--ink); font-size:12.5px; font-weight:600; padding:7px 12px;
+    border-radius:20px; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.12);
+    transition:transform .12s ease;
+  }
+  .chip:active{ transform:scale(0.95); }
+  .chip .chip-count{
+    background:var(--lm-green-deep); color:#fff; font-size:10.5px; font-weight:700;
+    min-width:16px; height:16px; padding:0 4px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- MAP PIN (ofertas) ---------- */
+  .lm-pin-wrap{ position:relative; width:38px; height:50px; }
+  .lm-pin{
+    width:34px; height:34px; background:var(--lm-green); border:3px solid #fff;
+    border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+    position:absolute; left:2px; top:2px;
+    box-shadow:0 6px 14px rgba(0,0,0,0.35);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lm-pin svg{ transform:rotate(45deg); width:15px; height:15px; }
+  .lm-pin.multi{ background:var(--lm-green-deep); }
+  .lm-pin-badge{
+    position:absolute; top:-4px; right:-2px; background:var(--lm-orange); color:#fff;
+    font-size:10px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; border:2px solid #fff;
+    padding:0 3px;
+  }
+  @keyframes dropIn{ from{ transform:translateY(-14px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+  .lm-pin-wrap{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
+
+  /* ---------- "VOCÊ ESTÁ AQUI" MARKER ---------- */
+  .me-pin-wrap{ width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:grab; }
+  .me-pin{
+    width:18px; height:18px; border-radius:50%; background:var(--lm-orange);
+    border:3px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.35); position:relative; z-index:2;
+  }
+  .me-pin-ring{
+    position:absolute; width:34px; height:34px; border-radius:50%;
+    border:2px solid var(--lm-orange); opacity:.55; animation:mePulse 1.7s infinite;
+  }
+  @keyframes mePulse{ 0%{ transform:scale(.4); opacity:.6; } 100%{ transform:scale(1.7); opacity:0; } }
+
+  /* ---------- CORRIDOR EDITOR NODES ---------- */
+  .node-pt{
+    width:22px; height:22px; border-radius:50%; background:var(--ink); color:#fff;
+    border:2px solid #fff; font-size:10px; font-weight:700; display:flex;
+    align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.3);
+  }
+  .node-pt.selected{ background:var(--lm-orange); }
+
+  /* ---------- FABs ---------- */
+  #fab-list, #fab-meulocal{
+    position:absolute; bottom:calc(20px + var(--safe-b)); z-index:850; border:none;
+    border-radius:26px; padding:13px 16px; display:flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:700; box-shadow:var(--shadow-lg); cursor:pointer;
+  }
+  #fab-list{ right:14px; background:var(--lm-green-deep); color:#fff; padding-right:18px; }
+  #fab-meulocal{ left:14px; background:#fff; color:var(--ink); border:1px solid var(--line); }
+  #fab-meulocal.on{ background:var(--lm-orange); color:#fff; border-color:var(--lm-orange); }
+  #fab-list:active, #fab-meulocal:active{ transform:scale(0.96); }
+
+  #route-clear{
+    position:absolute; left:50%; transform:translateX(-50%); top:calc(120px + var(--safe-t));
+    z-index:860; background:var(--ink); color:#fff; border:none; border-radius:22px;
+    padding:9px 16px; font-size:12.5px; font-weight:700; display:none; align-items:center; gap:7px;
+    box-shadow:var(--shadow-sm); cursor:pointer;
+  }
+  #route-clear.show{ display:flex; }
+
+  /* ---------- BACKDROP ---------- */
+  .backdrop{
+    position:fixed; inset:0; background:rgba(10,18,12,0.46); z-index:1000;
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .backdrop.show{ opacity:1; pointer-events:auto; }
+
+  /* ---------- BOTTOM SHEET (shared) ---------- */
+  .sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:1001;
+    background:var(--paper); border-radius:20px 20px 0 0;
+    box-shadow:0 -10px 30px rgba(0,0,0,0.25);
+    transform:translateY(100%); transition:transform .28s cubic-bezier(.2,.9,.25,1);
+    max-height:78vh; display:flex; flex-direction:column;
+    padding-bottom:var(--safe-b);
+  }
+  .sheet.show{ transform:translateY(0); }
+  .sheet-handle{ width:100%; padding:10px 0 4px; display:flex; justify-content:center; cursor:grab; touch-action:none; }
+  .sheet-handle span{ width:38px; height:4px; border-radius:3px; background:var(--line); display:block; }
+  .sheet-close{
+    position:absolute; top:10px; right:12px; width:30px; height:30px; border-radius:50%;
+    border:none; background:var(--paper-warm); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+
+  /* Offer detail sheet */
+  #sheet-detail .carousel{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none;
+    padding:4px 0 6px;
+  }
+  #sheet-detail .carousel::-webkit-scrollbar{ display:none; }
+  .offer-card{
+    flex:0 0 100%; scroll-snap-align:center; padding:6px 18px 16px;
+  }
+  .offer-card .tag{
+    display:inline-flex; align-items:center; gap:5px; background:var(--lm-green-soft); color:var(--lm-green-deep);
+    font-size:11px; font-weight:700; padding:5px 10px; border-radius:7px; margin-bottom:10px;
+  }
+  .offer-card .setor-label{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:2px; }
+  .offer-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
+  .offer-card .photo{
+    width:100%; height:150px; border-radius:14px; object-fit:cover; background:var(--paper-warm);
+    border:1px solid var(--line); margin-bottom:12px;
+  }
+  .price-row{ display:flex; align-items:flex-end; gap:10px; margin-bottom:14px; }
+  .price-was{ text-decoration:line-through; color:var(--ink-soft); font-size:13px; font-weight:500; }
+  .price-now{ color:var(--lm-green-deep); font-size:25px; font-weight:800; }
+  .price-off{
+    background:var(--lm-orange); color:#fff; font-size:11px; font-weight:800; padding:3px 8px;
+    border-radius:6px; margin-bottom:3px;
+  }
+  .btn-route{
+    width:100%; background:var(--lm-green); color:#fff; border:none; padding:13px; border-radius:12px;
+    font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px;
+    cursor:pointer; box-shadow:0 6px 16px rgba(30,138,60,0.35);
+  }
+  .btn-route:active{ transform:scale(0.98); }
+  .btn-route.secondary{ background:var(--paper-warm); color:var(--ink); box-shadow:none; }
+
+  .dots{ display:flex; justify-content:center; gap:6px; padding-bottom:2px; }
+  .dots span{ width:6px; height:6px; border-radius:50%; background:var(--line); }
+  .dots span.active{ background:var(--lm-green); width:16px; border-radius:3px; }
+
+  /* All-offers list sheet */
+  #sheet-list .list-inner{ overflow-y:auto; padding:2px 6px 10px; }
+  .list-group-title{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px;
+    color:var(--ink-soft); padding:14px 12px 6px;
+  }
+  .list-row{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; cursor:pointer;
+  }
+  .list-row:active{ background:var(--paper-warm); }
+  .list-row img{ width:52px; height:52px; border-radius:10px; object-fit:cover; background:var(--paper-warm); flex-shrink:0; }
+  .list-row .info{ flex:1; min-width:0; }
+  .list-row .info b{ display:block; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.25;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .list-row .info .lp{ font-size:12.5px; color:var(--lm-green-deep); font-weight:700; margin-top:2px; }
+
+  /* ---------- ADMIN PANEL (equipe) ---------- */
+  #admin-panel{
+    position:fixed; left:10px; right:10px; bottom:calc(10px + var(--safe-b)); z-index:1002;
+    background:var(--ink); color:#fff; border-radius:16px; padding:12px 14px;
+    box-shadow:var(--shadow-lg); display:none; flex-direction:column; gap:9px;
+  }
+  #admin-panel.show{ display:flex; }
+  #admin-panel .ap-head{ display:flex; align-items:center; justify-content:space-between; }
+  #admin-panel .ap-head b{ font-size:13px; font-weight:700; }
+  #admin-panel .ap-head small{ color:#9BB3A2; font-size:11.5px; }
+  #admin-panel .ap-hint{ color:#9BB3A2; font-size:11.5px; line-height:1.4; }
+  #admin-panel .ap-string{
+    background:rgba(255,255,255,0.08); border-radius:9px; padding:9px 10px; font-size:11px;
+    font-family:'SFMono-Regular',Menlo,monospace; color:#B9F0CB; word-break:break-all;
+    max-height:64px; overflow-y:auto; display:none;
+  }
+  #admin-panel .ap-string.show{ display:block; }
+  .ap-modes{ display:flex; gap:8px; }
+  .ap-mode-btn{
+    flex:1; border:1px solid rgba(255,255,255,0.16); background:transparent; color:#fff;
+    border-radius:9px; padding:8px 6px; font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .ap-mode-btn.active{ background:var(--lm-green); border-color:var(--lm-green); }
+  #admin-panel .ap-actions{ display:flex; gap:8px; }
+  .ap-btn{
+    flex:1; border:none; border-radius:9px; padding:9px 6px; font-size:12px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+  }
+  .ap-btn.copy{ background:var(--lm-green); color:#fff; }
+  .ap-btn.undo{ background:rgba(255,255,255,0.12); color:#fff; }
+  .ap-btn.clear{ background:rgba(255,255,255,0.12); color:#FF9E8A; }
+  .ap-btn.done{ background:var(--lm-orange); color:#fff; }
+
+  /* ---------- TOAST ---------- */
+  #toast{
+    position:fixed; left:50%; top:calc(16px + var(--safe-t)); transform:translate(-50%,-140%);
+    background:var(--ink); color:#fff; font-size:13px; font-weight:600; padding:10px 16px;
+    border-radius:11px; z-index:1200; box-shadow:var(--shadow-sm); transition:transform .25s ease;
+    display:flex; align-items:center; gap:8px; max-width:86vw; text-align:center;
+  }
+  #toast.show{ transform:translate(-50%,0); }
+
+  /* ---------- LOADING / EMPTY / ERROR ---------- */
+  #state-overlay{
+    position:absolute; inset:0; z-index:700; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:14px; background:var(--map-bg); text-align:center; padding:0 30px;
+  }
+  #state-overlay.hidden{ display:none; }
+  .spinner{
+    width:34px; height:34px; border-radius:50%; border:3px solid rgba(30,138,60,0.2);
+    border-top-color:var(--lm-green); animation:spin .8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #state-overlay p{ font-size:13.5px; color:var(--ink-soft); font-weight:500; max-width:260px; line-height:1.5; }
+  #state-overlay button{
+    background:var(--lm-green-deep); color:#fff; border:none; padding:11px 20px; border-radius:11px;
+    font-weight:700; font-size:13.5px; cursor:pointer; display:none;
+  }
+  #state-overlay.error button{ display:block; }
+</style>
 </head>
 <body>
 
-  <div id="header">
-    <div class="origem-selector">
-      <label for="select-origem">📍 Estou em:</label>
-      <select id="select-origem" onchange="atualizarPontoOrigem()">
-        <option value="iluminacao">Iluminação</option>
-        <option value="decoracao">Decoração</option>
-        <option value="organizacao">Organização</option>
-        <option value="pisos">Pisos e Revestimentos</option>
-        <option value="cozinhas">Cozinhas</option>
-        <option value="banheiros">Banheiros</option>
-        <option value="tintas">Tintas</option>
-        <option value="jardim">Jardim</option>
-        <option value="ferramentas">Ferramentas</option>
-        <option value="ferragens">Ferragens</option>
-        <option value="eletrica">Materiais Elétricos</option>
-        <option value="madeiras">Madeiras</option>
-        <option value="materiais">Materiais de Construção</option>
-      </select>
+  <div id="map"></div>
+
+  <!-- Estado: loading / erro / vazio -->
+  <div id="state-overlay">
+    <div class="spinner"></div>
+    <p id="state-text">Carregando ofertas do dia…</p>
+    <button id="state-retry">Tentar novamente</button>
+  </div>
+
+  <!-- Barra superior -->
+  <div id="topbar">
+    <div class="row">
+      <div class="brand"><b>LEROY MERLIN</b><span>Morumbi · Mapa de ofertas</span></div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">—</span></div>
+        <button class="icon-btn" id="btn-admin" title="Editor de corredores (equipe)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12h4l2-5 4 10 2-5h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="chips"></div>
+  </div>
+
+  <!-- Ações flutuantes -->
+  <button id="fab-meulocal">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span id="fab-meulocal-label">Marcar meu local</span>
+  </button>
+  <button id="fab-list">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+    Ofertas
+  </button>
+
+  <button id="route-clear">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+    Limpar caminho
+  </button>
+
+  <!-- Backdrop -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- Sheet: detalhe da(s) oferta(s) -->
+  <div class="sheet" id="sheet-detail">
+    <div class="sheet-handle" id="handle-detail"><span></span></div>
+    <button class="sheet-close" id="close-detail">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#16211A" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="carousel" id="carousel"></div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <!-- Sheet: lista completa -->
+  <div class="sheet" id="sheet-list">
+    <div class="sheet-handle" id="handle-list"><span></span></div>
+    <button class="sheet-close" id="close-list">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#16211A" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+    <div style="padding:8px 12px 0; font-weight:700; font-size:15px;">Ofertas ativas</div>
+    <div class="list-inner" id="list-inner"></div>
+  </div>
+
+  <!-- Painel do editor de corredores (equipe) -->
+  <div id="admin-panel">
+    <div class="ap-head">
+      <b>Editor de corredores</b>
+      <small id="ap-count">0 nós · 0 conexões</small>
+    </div>
+    <div class="ap-modes">
+      <button class="ap-mode-btn active" id="ap-mode-no">+ Nó</button>
+      <button class="ap-mode-btn" id="ap-mode-aresta">🔗 Conectar nós</button>
+    </div>
+    <div class="ap-hint" id="ap-hint">Toque no mapa para marcar um ponto do corredor.</div>
+    <div class="ap-string" id="ap-string"></div>
+    <div class="ap-actions">
+      <button class="ap-btn undo" id="ap-undo">Desfazer</button>
+      <button class="ap-btn clear" id="ap-clear">Limpar tudo</button>
+      <button class="ap-btn copy" id="ap-copy">Exportar</button>
+      <button class="ap-btn done" id="ap-done">Concluir</button>
     </div>
   </div>
 
-  <div id="map"></div>
+  <div id="toast"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
-    const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
-    const GID = "2013806288";
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
+  /* =========================================================================
+     CONFIG
+  ========================================================================= */
+  const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
+  const GID = "2013806288";
+  const CORREDOR_GID = "";               // <- opcional: GID de uma aba "Corredores" (veja abaixo)
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
+  const IMAGEM_MAPA = 'mapa-loja.png';
 
-    // CENTROS E LIMITES REAIS DAS SEÇÕES NO PLANO CARTESIANO DO LEAFLET (1000x1000)
-    // [Y, X] -> No Leaflet Simple CRS: Y é a altura (0=base, 1000=topo), X é a largura (0=esquerda, 1000=direita)
-    const SECOES_MAPA = {
-      "iluminacao":  { yCenter: 240, xCenter: 420, width: 100 },
-      "organizacao": { yCenter: 320, xCenter: 550, width: 80 },
-      "decoracao":   { yCenter: 380, xCenter: 420, width: 100 },
-      "pisos":       { yCenter: 520, xCenter: 420, width: 100 },
-      "retirada":    { yCenter: 650, xCenter: 420, width: 100 },
-      "cozinhas":    { yCenter: 440, xCenter: 550, width: 90 },
-      "banheiros":   { yCenter: 580, xCenter: 600, width: 180 },
-      "tintas":      { yCenter: 440, xCenter: 660, width: 80 },
-      "jardim":      { yCenter: 320, xCenter: 660, width: 80 },
-      "ferramentas": { yCenter: 320, xCenter: 760, width: 80 },
-      "ferragens":   { yCenter: 440, xCenter: 790, width: 80 },
-      "eletrica":    { yCenter: 320, xCenter: 800, width: 90 },
-      "madeiras":    { yCenter: 580, xCenter: 800, width: 80 },
-      "materiais":   { yCenter: 750, xCenter: 620, width: 140 }
-    };
+  /* Colunas da aba de OFERTAS (sem mudanças):
+     id_setor, nome_setor, ativo, titulo_campanha, produto_destaque,
+     preco_de, preco_por, foto_url, x, y, rota (opcional)
+     - Várias linhas com o mesmo id_setor viram 1 pino só, com carrossel.
+     - Só a 1ª linha do setor precisa ter x/y.
+     - "rota" continua opcional: se preenchida (formato "x,y;x,y"), essa
+       oferta usa esse caminho fixo. Se ficar vazia, o caminho é calculado
+       na hora, a partir de onde o cliente marcar "meu local" no mapa —
+       não é mais necessário cadastrar rota por oferta.
 
-    const bounds = [[0, 0], [1000, 1000]];
-    const map = L.map('map', {
-      crs: L.CRS.Simple,
-      maxBounds: bounds,
-      minZoom: -1.2,
-      maxZoom: 2,
-      zoomSnap: 0.1,
-      attributionControl: false
+     Aba opcional "Corredores" (para caminhos mais realistas, seguindo os
+     corredores da loja em vez de linha reta) — crie com as colunas:
+     tipo,id,x,y,de,para
+       linha de nó:    no,n1,120,300,,
+       linha de conexão: aresta,,,,n1,n2
+     Use o botão de corredores (ícone no topo) para desenhar essa malha
+     tocando no mapa e o botão "Exportar" já gera essas linhas prontas
+     pra colar na planilha. Depois, coloque o GID dessa aba em
+     CORREDOR_GID acima. Sem essa aba configurada, o caminho é traçado
+     em linha reta — já funciona, só fica menos "andando pelos corredores". */
+
+  /* =========================================================================
+     MAPA BASE
+  ========================================================================= */
+  const bounds = [[0, 0], [1000, 1000]];
+  const map = L.map('map', {
+    crs: L.CRS.Simple,
+    maxBounds: bounds,
+    maxBoundsViscosity: 0.8,
+    minZoom: -1.2,
+    maxZoom: 2,
+    zoomSnap: 0.1,
+    zoomControl: false,
+    attributionControl: false
+  });
+  L.imageOverlay(IMAGEM_MAPA, bounds).addTo(map);
+  map.fitBounds(bounds);
+
+  const ofertasLayer = L.layerGroup().addTo(map);
+  const rotaLayer = L.layerGroup().addTo(map);
+  const adminLayer = L.layerGroup().addTo(map);
+
+  /* =========================================================================
+     HELPERS DE UI
+  ========================================================================= */
+  const el = id => document.getElementById(id);
+  const backdrop = el('backdrop');
+  const sheetDetail = el('sheet-detail');
+  const sheetList = el('sheet-list');
+
+  function toast(msg){
+    const t = el('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(()=> t.classList.remove('show'), 2000);
+  }
+
+  function openSheet(sheet){
+    closeSheets();
+    backdrop.classList.add('show');
+    sheet.classList.add('show');
+  }
+  function closeSheets(){
+    backdrop.classList.remove('show');
+    sheetDetail.classList.remove('show');
+    sheetList.classList.remove('show');
+  }
+  backdrop.addEventListener('click', closeSheets);
+  el('close-detail').addEventListener('click', closeSheets);
+  el('close-list').addEventListener('click', closeSheets);
+
+  function enableDragToClose(handle, sheet){
+    let startY = null, currentY = 0;
+    handle.addEventListener('touchstart', e => { startY = e.touches[0].clientY; sheet.style.transition='none'; }, {passive:true});
+    handle.addEventListener('touchmove', e => {
+      if(startY===null) return;
+      currentY = Math.max(0, e.touches[0].clientY - startY);
+      sheet.style.transform = `translateY(${currentY}px)`;
+    }, {passive:true});
+    handle.addEventListener('touchend', () => {
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+      if(currentY > 90) closeSheets();
+      startY = null; currentY = 0;
+    });
+  }
+  enableDragToClose(el('handle-detail'), sheetDetail);
+  enableDragToClose(el('handle-list'), sheetList);
+
+  function formatPreco(v){
+    const n = parseFloat(String(v).replace(',','.'));
+    if(isNaN(n)) return '';
+    return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  /* =========================================================================
+     ÍCONE DE PINO DE OFERTA
+  ========================================================================= */
+  const pinSvg = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2C7 2 3 5.9 3 10.5c0 4.2 3.5 8.2 8.1 11.2.55.36 1.24.36 1.8 0C17.5 18.7 21 14.7 21 10.5 21 5.9 17 2 12 2Zm0 11.2a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Z" fill="white"/></svg>`;
+
+  function criarIconeSetor(qtd){
+    const multi = qtd > 1;
+    return L.divIcon({
+      className: '',
+      html: `<div class="lm-pin-wrap">
+               <div class="lm-pin${multi ? ' multi' : ''}">${pinSvg}</div>
+               ${multi ? `<div class="lm-pin-badge">${qtd}</div>` : ''}
+             </div>`,
+      iconSize: [38, 50],
+      iconAnchor: [19, 46],
+      popupAnchor: [0, -40]
+    });
+  }
+
+  /* =========================================================================
+     ESTADO: local do cliente, destino pendente, ofertas, corredores
+  ========================================================================= */
+  let grupos = {};
+  let markersPorSetor = {};
+
+  let meuLocal = null;          // {x,y}
+  let meuLocalMarker = null;
+  let settingMeuLocal = false;
+  let pendingDestino = null;    // {x,y} — destino aguardando o cliente marcar o local
+  let pendingDestinoSetorId = null;
+
+  let CORREDOR_NODES = [];      // [{id,x,y}]
+  let CORREDOR_EDGES = [];      // [[id,id]]
+  let nodeSeq = 0;
+
+  let adminMode = false;
+  let adminSubMode = 'no';      // 'no' | 'aresta'
+  let selectedNodeId = null;
+
+  try{
+    const saved = localStorage.getItem('lm_meu_local');
+    if(saved) meuLocal = JSON.parse(saved);
+  }catch(e){}
+
+  /* =========================================================================
+     CARREGAR E AGRUPAR OFERTAS
+  ========================================================================= */
+  async function carregarOfertas(){
+    mostrarEstado('loading');
+    try{
+      const response = await fetch(CSV_URL, { cache: 'no-store' });
+      if(!response.ok) throw new Error('HTTP ' + response.status);
+      const textData = await response.text();
+
+      const lines = textData.split('\n').filter(l => l.trim() !== '');
+      if(lines.length < 2){ mostrarEstado('empty'); return; }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      grupos = {};
+
+      for(let i = 1; i < lines.length; i++){
+        const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        const item = {};
+        headers.forEach((h, idx) => {
+          let val = values[idx] ? values[idx].trim() : '';
+          val = val.replace(/^"|"$/g, '');
+          item[h] = val;
+        });
+
+        if(String(item.ativo).trim() !== '1') continue;
+
+        const chave = (item.id_setor || item.nome_setor || ('setor_' + i)).trim();
+        if(!grupos[chave]){
+          grupos[chave] = { id_setor: chave, nome_setor: item.nome_setor || chave, x: null, y: null, ofertas: [] };
+        }
+        grupos[chave].ofertas.push(item);
+
+        if(grupos[chave].x === null){
+          const px = parseFloat(item.x), py = parseFloat(item.y);
+          if(!isNaN(px) && !isNaN(py)){ grupos[chave].x = px; grupos[chave].y = py; }
+        }
+      }
+
+      Object.keys(grupos).forEach(k => { if(grupos[k].x === null) delete grupos[k]; });
+
+      const totalGrupos = Object.keys(grupos).length;
+      if(totalGrupos === 0){ mostrarEstado('empty'); return; }
+
+      desenharPinos();
+      montarChips();
+      montarStatus();
+      mostrarEstado('ok');
+    }catch(err){
+      console.error('Erro ao carregar ofertas:', err);
+      mostrarEstado('error');
+    }
+  }
+
+  async function carregarCorredores(){
+    if(!CORREDOR_GID) return;
+    try{
+      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${CORREDOR_GID}`;
+      const resp = await fetch(url, { cache: 'no-store' });
+      if(!resp.ok) return;
+      const text = await resp.text();
+      const lines = text.split('\n').filter(l => l.trim() !== '');
+      if(lines.length < 2) return;
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const nodes = [], edges = [];
+      for(let i = 1; i < lines.length; i++){
+        const values = lines[i].split(',');
+        const row = {};
+        headers.forEach((h, idx) => { row[h] = values[idx] ? values[idx].trim().replace(/^"|"$/g, '') : ''; });
+        if(row.tipo === 'no' && row.id){
+          const x = parseFloat(row.x), y = parseFloat(row.y);
+          if(!isNaN(x) && !isNaN(y)) nodes.push({ id: row.id, x, y });
+        } else if(row.tipo === 'aresta' && row.de && row.para){
+          edges.push([row.de, row.para]);
+        }
+      }
+      if(nodes.length){ CORREDOR_NODES = nodes; CORREDOR_EDGES = edges; nodeSeq = CORREDOR_NODES.length; }
+    }catch(e){
+      console.warn('Corredores não carregados — usando linha reta como caminho.', e);
+    }
+  }
+
+  function desenharPinos(){
+    ofertasLayer.clearLayers();
+    markersPorSetor = {};
+    Object.values(grupos).forEach(grupo => {
+      const icon = criarIconeSetor(grupo.ofertas.length);
+      const marker = L.marker([grupo.y, grupo.x], { icon, zIndexOffset: adminMode ? 500 : 0 }).addTo(ofertasLayer);
+      marker.on('click', () => {
+        if(adminMode){
+          if(adminSubMode === 'aresta') selecionarNoParaConexao('setor:' + grupo.id_setor, grupo.x, grupo.y);
+          return;
+        }
+        abrirDetalhe(grupo.id_setor, 0);
+      });
+      markersPorSetor[grupo.id_setor] = marker;
+    });
+  }
+
+  function montarChips(){
+    const wrap = el('chips');
+    wrap.innerHTML = '';
+    Object.values(grupos)
+      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
+      .forEach(grupo => {
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        chip.innerHTML = `${grupo.nome_setor}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
+        chip.addEventListener('click', () => {
+          map.flyTo([grupo.y, grupo.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
+          abrirDetalhe(grupo.id_setor, 0);
+        });
+        wrap.appendChild(chip);
+      });
+  }
+
+  function montarStatus(){
+    const totalOfertas = Object.values(grupos).reduce((s,g) => s + g.ofertas.length, 0);
+    const totalSetores = Object.keys(grupos).length;
+    el('status-text').textContent = `${totalOfertas} oferta${totalOfertas !== 1 ? 's' : ''} · ${totalSetores} setor${totalSetores !== 1 ? 'es' : ''}`;
+  }
+
+  function mostrarEstado(tipo){
+    const overlay = el('state-overlay');
+    overlay.classList.remove('error');
+    if(tipo === 'ok'){ overlay.classList.add('hidden'); return; }
+    overlay.classList.remove('hidden');
+    if(tipo === 'loading'){
+      el('state-text').textContent = 'Carregando ofertas do dia…';
+    } else if(tipo === 'empty'){
+      el('state-text').textContent = 'Nenhuma oferta ativa no momento. Volte em instantes!';
+    } else if(tipo === 'error'){
+      overlay.classList.add('error');
+      el('state-text').textContent = 'Não foi possível carregar as ofertas agora.';
+    }
+  }
+  el('state-retry').addEventListener('click', carregarOfertas);
+
+  /* =========================================================================
+     "MEU LOCAL" — o cliente marca de onde está partindo
+  ========================================================================= */
+  function atualizarLabelMeuLocal(){
+    el('fab-meulocal-label').textContent = meuLocal ? 'Meu local ✓' : 'Marcar meu local';
+  }
+  atualizarLabelMeuLocal();
+
+  function colocarMeuLocalMarker(){
+    if(meuLocalMarker) map.removeLayer(meuLocalMarker);
+    meuLocalMarker = L.marker([meuLocal.y, meuLocal.x], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div class="me-pin-wrap"><div class="me-pin-ring"></div><div class="me-pin"></div></div>',
+        iconSize: [34, 34], iconAnchor: [17, 17]
+      }),
+      draggable: true, zIndexOffset: 1000
+    }).addTo(map);
+    meuLocalMarker.on('dragend', () => {
+      const ll = meuLocalMarker.getLatLng();
+      meuLocal = encaixarNoCorredor({ x: Math.round(ll.lng), y: Math.round(ll.lat) });
+      meuLocalMarker.setLatLng([meuLocal.y, meuLocal.x]);
+      try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(e){}
+    });
+  }
+  if(meuLocal) colocarMeuLocalMarker();
+
+  function ativarModoMeuLocal(){
+    settingMeuLocal = true;
+    el('fab-meulocal').classList.add('on');
+    toast('Toque no mapa para marcar onde você está');
+  }
+  function desativarModoMeuLocal(){
+    settingMeuLocal = false;
+    el('fab-meulocal').classList.remove('on');
+  }
+  el('fab-meulocal').addEventListener('click', () => {
+    if(settingMeuLocal){ desativarModoMeuLocal(); return; }
+    ativarModoMeuLocal();
+  });
+
+  /* =========================================================================
+     CÁLCULO DE CAMINHO (grafo de corredores + linha reta como fallback)
+  ========================================================================= */
+  function buildAdjacency(){
+    const adj = {};
+    CORREDOR_NODES.forEach(n => adj[n.id] = []);
+    CORREDOR_EDGES.forEach(([a,b]) => {
+      const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
+      if(!na || !nb) return;
+      const d = Math.hypot(na.x-nb.x, na.y-nb.y);
+      (adj[a] = adj[a]||[]).push({to:b, w:d});
+      (adj[b] = adj[b]||[]).push({to:a, w:d});
+    });
+    return adj;
+  }
+
+  function nearestNode(x,y){
+    if(!CORREDOR_NODES.length) return null;
+    let best=null, bestD=Infinity;
+    CORREDOR_NODES.forEach(n=>{ const d=Math.hypot(n.x-x,n.y-y); if(d<bestD){bestD=d;best=n;} });
+    return best;
+  }
+
+  // gruda o ponto marcado pelo cliente no corredor mais próximo (dentro de
+  // uma distância razoável), pra ele sempre partir de cima do corredor —
+  // não de um ponto solto no meio de uma seção.
+  const DISTANCIA_MAX_ENCAIXE = 140;
+  function encaixarNoCorredor(ponto){
+    const nos = CORREDOR_NODES.filter(n => !n.id.startsWith('setor:'));
+    if(!nos.length) return ponto;
+    let best=null, bestD=Infinity;
+    nos.forEach(n=>{ const d=Math.hypot(n.x-ponto.x,n.y-ponto.y); if(d<bestD){bestD=d;best=n;} });
+    if(best && bestD <= DISTANCIA_MAX_ENCAIXE) return { x: best.x, y: best.y };
+    return ponto;
+  }
+
+  function dijkstra(startId, endId){
+    const adj = buildAdjacency();
+    const dist = {}, prev = {};
+    CORREDOR_NODES.forEach(n=>dist[n.id]=Infinity);
+    dist[startId]=0;
+    const pendentes = new Set(CORREDOR_NODES.map(n=>n.id));
+    while(pendentes.size){
+      let u=null, best=Infinity;
+      pendentes.forEach(id=>{ if(dist[id]<best){ best=dist[id]; u=id; } });
+      if(u===null) break;
+      pendentes.delete(u);
+      if(u===endId) break;
+      (adj[u]||[]).forEach(edge=>{
+        const alt = dist[u]+edge.w;
+        if(alt<dist[edge.to]){ dist[edge.to]=alt; prev[edge.to]=u; }
+      });
+    }
+    if(!(endId in dist) || dist[endId]===Infinity) return null;
+    const path=[endId];
+    let cur=endId;
+    while(cur!==startId){
+      cur = prev[cur];
+      if(cur===undefined) return null;
+      path.unshift(cur);
+    }
+    return path.map(id=>CORREDOR_NODES.find(n=>n.id===id));
+  }
+
+  function calcularCaminho(origem, destino, destinoSetorId){
+    if(!CORREDOR_NODES.length) return [origem, destino];
+    const nOrig = nearestNode(origem.x, origem.y);
+
+    // se a seção de destino já foi conectada à malha no editor, usamos
+    // esse nó exato — evita "atalho" reto por cima de outras seções.
+    let nDestId = null;
+    if(destinoSetorId){
+      const noSetor = CORREDOR_NODES.find(n => n.id === 'setor:' + destinoSetorId);
+      if(noSetor) nDestId = noSetor.id;
+    }
+    if(!nDestId){
+      const nDest = nearestNode(destino.x, destino.y);
+      nDestId = nDest ? nDest.id : null;
+    }
+
+    if(!nOrig || !nDestId) return [origem, destino];
+    const path = dijkstra(nOrig.id, nDestId);
+    if(!path) return [origem, destino];
+    return [origem, ...path, destino];
+  }
+
+  function desenharCaminho(pontos){
+    rotaLayer.clearLayers();
+    if(!pontos || pontos.length < 2){ el('route-clear').classList.remove('show'); return; }
+    const latlngs = pontos.map(p => [p.y, p.x]);
+    L.polyline(latlngs, { color:'#1E8A3C', weight:5, dashArray:'2, 10', lineCap:'round' }).addTo(rotaLayer);
+    L.circleMarker(latlngs[latlngs.length-1], { radius:6, color:'#fff', weight:2, fillColor:'#FF6B00', fillOpacity:1 }).addTo(rotaLayer);
+    map.fitBounds(L.polyline(latlngs).getBounds(), { padding:[60,60] });
+    el('route-clear').classList.add('show');
+  }
+
+  // compatibilidade com rota manual (string "x,y;x,y" vinda da planilha)
+  function desenharRota(strRota){
+    if(!strRota){ desenharCaminho(null); return; }
+    try{
+      const pontos = strRota.split(';').filter(p=>p.trim()!=='').map(p => {
+        const [x,y] = p.split(',').map(Number);
+        return { x, y };
+      });
+      desenharCaminho(pontos);
+    }catch(e){ console.error('Erro ao desenhar rota:', e); }
+  }
+  el('route-clear').addEventListener('click', () => desenharCaminho(null));
+
+  function tracarCaminhoPara(destino, destinoSetorId){
+    if(meuLocal){
+      const pontos = calcularCaminho(meuLocal, destino, destinoSetorId);
+      desenharCaminho(pontos);
+      closeSheets();
+      toast(CORREDOR_NODES.length ? 'Caminho traçado no mapa' : 'Caminho traçado (linha direta)');
+    } else {
+      pendingDestino = destino;
+      pendingDestinoSetorId = destinoSetorId;
+      closeSheets();
+      ativarModoMeuLocal();
+    }
+  }
+
+  /* =========================================================================
+     SHEET — DETALHE DA OFERTA (carrossel)
+  ========================================================================= */
+  function abrirDetalhe(idSetor, indice){
+    const grupo = grupos[idSetor];
+    if(!grupo) return;
+
+    const carousel = el('carousel');
+    const dots = el('dots');
+    carousel.innerHTML = '';
+    dots.innerHTML = '';
+
+    grupo.ofertas.forEach((oferta) => {
+      const desconto = (oferta.preco_de && oferta.preco_por)
+        ? Math.round(100 - (parseFloat(oferta.preco_por.replace(',','.')) / parseFloat(oferta.preco_de.replace(',','.'))) * 100)
+        : null;
+
+      const temRotaManual = !!(oferta.rota && oferta.rota.trim() !== '');
+      const labelBotao = temRotaManual || meuLocal ? 'Ver caminho até aqui' : 'Marcar meu local e ver caminho';
+
+      const card = document.createElement('div');
+      card.className = 'offer-card';
+      card.innerHTML = `
+        <div class="setor-label">${grupo.nome_setor}</div>
+        <span class="tag">${oferta.titulo_campanha || 'Oferta especial'}</span>
+        ${oferta.foto_url ? `<img class="photo" src="${oferta.foto_url}" alt="">` : ''}
+        <h3>${oferta.produto_destaque || ''}</h3>
+        <div class="price-row">
+          ${desconto !== null ? `<span class="price-off">-${desconto}%</span>` : ''}
+          <div>
+            ${oferta.preco_de ? `<div class="price-was">De R$ ${formatPreco(oferta.preco_de)}</div>` : ''}
+            <div class="price-now">R$ ${formatPreco(oferta.preco_por)}</div>
+          </div>
+        </div>
+        <button class="btn-route">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="2"/></svg>
+          ${labelBotao}
+        </button>
+      `;
+      card.querySelector('.btn-route').addEventListener('click', () => {
+        if(temRotaManual){
+          desenharRota(oferta.rota);
+          closeSheets();
+          toast('Caminho traçado no mapa');
+          return;
+        }
+        tracarCaminhoPara({ x: grupo.x, y: grupo.y }, grupo.id_setor);
+      });
+      carousel.appendChild(card);
+
+      const d = document.createElement('span');
+      dots.appendChild(d);
     });
 
-    L.imageOverlay('mapa-loja.png', bounds).addTo(map);
-    map.fitBounds(bounds);
+    dots.style.display = grupo.ofertas.length <= 1 ? 'none' : 'flex';
 
-    let linhaRotaAtual = null;
-    let marcadorOrigem = null;
+    openSheet(sheetDetail);
 
-    // Calcula a posição da placa usando deslocamento horizontal dentro da seção
-    function obterCoordenadaPorPlaca(setorKey, placaNumStr, rangeStr) {
-      const secao = SECOES_MAPA[setorKey];
-      if (!secao) return null;
+    requestAnimationFrame(() => {
+      const cardWidth = carousel.clientWidth;
+      carousel.scrollLeft = cardWidth * indice;
+      atualizarDots();
+    });
+  }
 
-      const placaVal = parseInt(placaNumStr) || 1;
-      let minPlaca = 1, maxPlaca = 20;
+  el('carousel').addEventListener('scroll', () => {
+    clearTimeout(el('carousel')._tm);
+    el('carousel')._tm = setTimeout(atualizarDots, 60);
+  });
+  function atualizarDots(){
+    const carousel = el('carousel');
+    const dots = el('dots').children;
+    if(!dots.length) return;
+    const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    [...dots].forEach((d,i) => d.classList.toggle('active', i === idx));
+  }
 
-      if (rangeStr && rangeStr.includes('-')) {
-        const partes = rangeStr.split('-').map(n => parseInt(n.trim()));
-        minPlaca = partes[0] || 1;
-        maxPlaca = partes[1] || 20;
-      }
+  /* =========================================================================
+     SHEET — LISTA COMPLETA
+  ========================================================================= */
+  el('fab-list').addEventListener('click', () => {
+    const inner = el('list-inner');
+    inner.innerHTML = '';
+    Object.values(grupos)
+      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
+      .forEach(grupo => {
+        const title = document.createElement('div');
+        title.className = 'list-group-title';
+        title.textContent = grupo.nome_setor;
+        inner.appendChild(title);
 
-      const totalPlacas = Math.max(maxPlaca - minPlaca + 1, 1);
-      const proporcao = Math.min(Math.max((placaVal - minPlaca) / totalPlacas, 0), 1);
-
-      // Desloca o pino na largura da própria seção conforme o número da placa
-      const posX = (secao.xCenter - secao.width / 2) + (secao.width * proporcao);
-      const posY = secao.yCenter;
-
-      return { x: Math.round(posX), y: Math.round(posY) };
-    }
-
-    function obterCoordenadaSetor(setorKey) {
-      const secao = SECOES_MAPA[setorKey];
-      if (!secao) return [420, 240];
-      return [secao.xCenter, secao.yCenter];
-    }
-
-    function atualizarPontoOrigem() {
-      const setorSel = document.getElementById('select-origem').value;
-      const [x, y] = obterCoordenadaSetor(setorSel);
-
-      if (marcadorOrigem) map.removeLayer(marcadorOrigem);
-      
-      const origemIcon = L.divIcon({
-        className: 'gps-user-pin',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      });
-
-      marcadorOrigem = L.marker([y, x], { icon: origemIcon }).addTo(map);
-    }
-
-    function GERAR_ROTA_AUTOMATICA(destX, destY) {
-      if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
-
-      const setorSel = document.getElementById('select-origem').value;
-      const [origX, origY] = obterCoordenadaSetor(setorSel);
-
-      // Rota usando os corredores principais do mapa
-      const corredorX = 490;
-      const pontosRota = [
-        [origY, origX],
-        [origY, corredorX],
-        [destY, corredorX],
-        [destY, destX]
-      ];
-
-      linhaRotaAtual = L.polyline(pontosRota, {
-        color: '#00e65c',
-        weight: 6,
-        dashArray: '8, 8',
-        lineCap: 'round'
-      }).addTo(map);
-
-      map.fitBounds(linhaRotaAtual.getBounds(), { padding: [50, 50] });
-    }
-
-    async function carregarOfertas() {
-      atualizarPontoOrigem();
-
-      try {
-        const response = await fetch(CSV_URL);
-        const textData = await response.text();
-
-        const lines = textData.split('\n');
-        if (lines.length < 2) return;
-
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-
-        for (let i = 1; i < lines.length; i++) {
-          if (!lines[i].trim()) continue;
-
-          const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-          const item = {};
-          
-          headers.forEach((header, index) => {
-            let val = values[index] ? values[index].trim() : '';
-            val = val.replace(/^"|"$/g, '');
-            item[header] = val;
+        grupo.ofertas.forEach((oferta, i) => {
+          const row = document.createElement('div');
+          row.className = 'list-row';
+          row.innerHTML = `
+            <img src="${oferta.foto_url || ''}" alt="">
+            <div class="info">
+              <b>${oferta.produto_destaque || ''}</b>
+              <div class="lp">R$ ${formatPreco(oferta.preco_por)}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.35;flex-shrink:0;"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          `;
+          row.addEventListener('click', () => {
+            map.flyTo([grupo.y, grupo.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
+            abrirDetalhe(grupo.id_setor, i);
           });
+          inner.appendChild(row);
+        });
+      });
+    openSheet(sheetList);
+  });
 
-          if (String(item.ativo).trim() === "1") {
-            const setorKey = (item.id_setor || '').toLowerCase().trim();
-            const pos = obterCoordenadaPorPlaca(setorKey, item.placa_corredor, item.range_placas);
+  /* =========================================================================
+     EDITOR DE CORREDORES (equipe) — construir a malha de caminhos 1 vez
+  ========================================================================= */
+  function novoNodeId(){ nodeSeq++; return 'n' + nodeSeq; }
 
-            if (pos) {
-              const neonIcon = L.divIcon({
-                className: 'custom-neon-pin',
-                html: `📍`,
-                iconSize: [22, 22],
-                iconAnchor: [11, 11]
-              });
-
-              const card = document.createElement('div');
-              card.className = 'card-oferta';
-              card.innerHTML = `
-                <span class="tag-placa">📍 PLACA ${item.placa_corredor || 'CORREDOR'}</span>
-                <h3>${item.produto_destaque || ''}</h3>
-                ${item.foto_url ? `<img src="${item.foto_url}" alt="Foto">` : ''}
-                <div class="preco-container">
-                  ${item.preco_de ? `<div class="preco-de">De: R$ ${item.preco_de}</div>` : ''}
-                  <div class="preco-por">Por: R$ ${item.preco_por}</div>
-                </div>
-              `;
-
-              const btn = document.createElement('button');
-              btn.className = 'btn-rota';
-              btn.innerHTML = '🚶‍♂️ Traçar Rota Até Esta Placa';
-              btn.onclick = () => GERAR_ROTA_AUTOMATICA(pos.x, pos.y);
-              card.appendChild(btn);
-
-              const marker = L.marker([pos.y, pos.x], { icon: neonIcon }).addTo(map).bindPopup(card);
-
-              marker.on('click', () => {
-                GERAR_ROTA_AUTOMATICA(pos.x, pos.y);
-              });
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Erro ao carregar dados da planilha:", err);
+  function renderCorridorGraph(){
+    adminLayer.clearLayers();
+    // pinos de oferta já aparecem via ofertasLayer — aqui só desenhamos os
+    // nós "livres" do corredor (não os que representam uma seção/oferta).
+    CORREDOR_NODES.filter(n => !n.id.startsWith('setor:')).forEach(n => {
+      const marker = L.marker([n.y, n.x], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="node-pt${n.id===selectedNodeId ? ' selected':''}">${n.id.replace('n','')}</div>`,
+          iconSize:[22,22], iconAnchor:[11,11]
+        })
+      }).addTo(adminLayer);
+      marker.on('click', (ev) => {
+        L.DomEvent.stopPropagation(ev);
+        if(!adminMode || adminSubMode !== 'aresta') return;
+        selecionarNoParaConexao(n.id, n.x, n.y);
+      });
+    });
+    // realça o pino de oferta selecionado como origem da conexão
+    if(selectedNodeId && selectedNodeId.startsWith('setor:')){
+      const grupoSel = grupos[selectedNodeId.slice(6)];
+      if(grupoSel){
+        L.circleMarker([grupoSel.y, grupoSel.x], { radius:20, color:'#FF6B00', weight:3, fill:false }).addTo(adminLayer);
       }
     }
+    CORREDOR_EDGES.forEach(([a,b]) => {
+      const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
+      if(na && nb) L.polyline([[na.y,na.x],[nb.y,nb.x]], { color:'#16211A', weight:3, dashArray:'2,8' }).addTo(adminLayer);
+    });
+  }
 
-    carregarOfertas();
+  // usada tanto por nós "livres" do corredor quanto por pinos de oferta,
+  // para que uma seção possa ser ligada diretamente à malha de corredores
+  // — garantindo que o caminho entre nela pelo ponto certo, sem atravessar
+  // outras seções.
+  function registrarNoSetor(id, x, y){
+    const existente = CORREDOR_NODES.find(n => n.id === id);
+    if(existente){ existente.x = x; existente.y = y; }
+    else CORREDOR_NODES.push({ id, x, y, isSetor:true });
+  }
+
+  function selecionarNoParaConexao(id, x, y){
+    if(id.startsWith('setor:')) registrarNoSetor(id, x, y);
+    if(!selectedNodeId){ selectedNodeId = id; renderCorridorGraph(); toast('Agora toque no ponto do corredor para ligar'); return; }
+    if(selectedNodeId === id){ selectedNodeId = null; renderCorridorGraph(); return; }
+    CORREDOR_EDGES.push([selectedNodeId, id]);
+    selectedNodeId = null;
+    renderCorridorGraph();
+    atualizarPainelCorredores();
+  }
+
+  function atualizarPainelCorredores(){
+    el('ap-count').textContent = `${CORREDOR_NODES.length} nós · ${CORREDOR_EDGES.length} conexões`;
+  }
+
+  function atualizarModoBotoes(){
+    el('ap-mode-no').classList.toggle('active', adminSubMode==='no');
+    el('ap-mode-aresta').classList.toggle('active', adminSubMode==='aresta');
+    el('ap-hint').textContent = adminSubMode==='no'
+      ? 'Toque no mapa para marcar um ponto do corredor.'
+      : 'Toque em 2 pontos em sequência para ligá-los — vale ligar direto num pino de oferta, pra garantir que o caminho entre na seção pelo lugar certo.';
+  }
+
+  el('btn-admin').addEventListener('click', () => {
+    adminMode = !adminMode;
+    el('btn-admin').classList.toggle('on', adminMode);
+    el('admin-panel').classList.toggle('show', adminMode);
+    closeSheets();
+    selectedNodeId = null;
+    if(adminMode){
+      renderCorridorGraph();
+      atualizarPainelCorredores();
+      atualizarModoBotoes();
+    } else {
+      adminLayer.clearLayers();
+    }
+  });
+
+  el('ap-mode-no').addEventListener('click', () => { adminSubMode='no'; selectedNodeId=null; atualizarModoBotoes(); renderCorridorGraph(); });
+  el('ap-mode-aresta').addEventListener('click', () => { adminSubMode='aresta'; atualizarModoBotoes(); });
+
+  el('ap-undo').addEventListener('click', () => {
+    if(adminSubMode==='no'){
+      const removido = CORREDOR_NODES.pop();
+      if(removido) CORREDOR_EDGES = CORREDOR_EDGES.filter(([a,b]) => a!==removido.id && b!==removido.id);
+    } else {
+      CORREDOR_EDGES.pop();
+    }
+    renderCorridorGraph();
+    atualizarPainelCorredores();
+  });
+  el('ap-clear').addEventListener('click', () => {
+    CORREDOR_NODES = []; CORREDOR_EDGES = []; selectedNodeId = null;
+    renderCorridorGraph();
+    atualizarPainelCorredores();
+    el('ap-string').classList.remove('show');
+  });
+  el('ap-copy').addEventListener('click', async () => {
+    if(!CORREDOR_NODES.length){ toast('Marque ao menos 2 nós primeiro'); return; }
+    const linhas = ['tipo,id,x,y,de,para'];
+    CORREDOR_NODES.forEach(n => linhas.push(`no,${n.id},${n.x},${n.y},,`));
+    CORREDOR_EDGES.forEach(([a,b]) => linhas.push(`aresta,,,,${a},${b}`));
+    const texto = linhas.join('\n');
+    el('ap-string').textContent = texto;
+    el('ap-string').classList.add('show');
+    try{
+      await navigator.clipboard.writeText(texto);
+      toast('Copiado! Cole numa aba "Corredores" da planilha');
+    }catch(e){
+      toast('Selecione e copie o texto abaixo manualmente');
+    }
+  });
+  el('ap-done').addEventListener('click', () => el('btn-admin').click());
+
+  /* =========================================================================
+     CLIQUE NO MAPA — roteia para o modo ativo (editor / marcar local)
+  ========================================================================= */
+  map.on('click', e => {
+    if(adminMode){
+      if(adminSubMode==='no'){
+        CORREDOR_NODES.push({ id: novoNodeId(), x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
+        renderCorridorGraph();
+        atualizarPainelCorredores();
+      }
+      return;
+    }
+    if(settingMeuLocal){
+      meuLocal = encaixarNoCorredor({ x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) });
+      colocarMeuLocalMarker();
+      desativarModoMeuLocal();
+      atualizarLabelMeuLocal();
+      try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(err){}
+
+      if(pendingDestino){
+        const pontos = calcularCaminho(meuLocal, pendingDestino, pendingDestinoSetorId);
+        desenharCaminho(pontos);
+        pendingDestino = null;
+        pendingDestinoSetorId = null;
+        toast('Caminho traçado no mapa');
+      } else {
+        toast('Local marcado! Escolha uma oferta para ver o caminho');
+      }
+    }
+  });
+
+  /* =========================================================================
+     INÍCIO
+  ========================================================================= */
+  carregarOfertas();
+  carregarCorredores();
   </script>
 </body>
 </html>
