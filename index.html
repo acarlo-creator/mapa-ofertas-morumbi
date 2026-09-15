@@ -32,7 +32,6 @@
 
     #map { width: 100vw; height: calc(100vh - 75px); margin-top: 75px; background: #0b0f19; z-index: 1; }
 
-    /* Ponto GPS Azul Discreto */
     .gps-user-pin {
       width: 16px; height: 16px; background: #38bdf8; border-radius: 50%;
       border: 3px solid #ffffff; box-shadow: 0 0 12px #38bdf8;
@@ -44,7 +43,6 @@
       100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
     }
 
-    /* Pins Neon de Ofertas */
     .custom-neon-pin {
       width: 22px; height: 22px; background: #00e65c; border-radius: 50%;
       border: 3px solid #ffffff; box-shadow: 0 0 15px #00e65c;
@@ -57,7 +55,6 @@
       to { box-shadow: 0 0 18px #00e65c; }
     }
 
-    /* Popups Clean */
     .leaflet-popup-content-wrapper { 
       border-radius: 12px; padding: 0; overflow: hidden; 
       background: rgba(15, 23, 42, 0.95) !important; color: #fff;
@@ -94,14 +91,18 @@
       <label for="select-origem">📍 Estou em:</label>
       <select id="select-origem" onchange="atualizarPontoOrigem()">
         <option value="iluminacao">Iluminação</option>
+        <option value="decoracao">Decoração</option>
+        <option value="organizacao">Organização</option>
+        <option value="pisos">Pisos e Revestimentos</option>
+        <option value="cozinhas">Cozinhas</option>
+        <option value="banheiros">Banheiros</option>
         <option value="tintas">Tintas</option>
         <option value="jardim">Jardim</option>
         <option value="ferramentas">Ferramentas</option>
-        <option value="cozinhas">Cozinhas</option>
-        <option value="pisos">Pisos e Revestimentos</option>
+        <option value="ferragens">Ferragens</option>
+        <option value="eletrica">Materiais Elétricos</option>
+        <option value="madeiras">Madeiras</option>
         <option value="materiais">Materiais de Construção</option>
-        <option value="decoracao">Decoração</option>
-        <option value="banheiros">Banheiros</option>
       </select>
     </div>
   </div>
@@ -115,10 +116,9 @@
     const GID = "2013806288";
     const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
-    // COORDENADAS REAIS DOS RETÂNGULOS DAS SEÇÕES (Visualmente calibrados com a imagem)
-    // x1, x2 = Limites Esquerda/Direita | y1, y2 = Limites Superior/Inferior
+    // Dicionário de Limites Físicos Absolutos de Cada Seção no Mapa
     const SECOES_MAPA = {
-      "iluminacao":  { x1: 360, x2: 480, y1: 750, y2: 860 },
+      "iluminacao":  { x1: 360, x2: 485, y1: 750, y2: 860 },
       "organizacao": { x1: 495, x2: 605, y1: 670, y2: 745 },
       "decoracao":   { x1: 360, x2: 485, y1: 585, y2: 745 },
       "pisos":       { x1: 350, x2: 485, y1: 450, y2: 580 },
@@ -151,7 +151,6 @@
     let marcadorOrigem = null;
     const CORREDOR_CENTRAL = [490, 500];
 
-    // Calcula a posição exata interpolada dentro da caixa da Seção
     function obterCoordenadaPorPlaca(setorKey, placaNumStr, rangeStr) {
       const secao = SECOES_MAPA[setorKey];
       if (!secao) return null;
@@ -168,9 +167,9 @@
       const totalPlacas = Math.max(maxPlaca - minPlaca + 1, 1);
       const proporcao = Math.min(Math.max((placaVal - minPlaca) / totalPlacas, 0), 1);
 
-      // Interpolação dentro dos limites exatos do retângulo colorido da seção
+      // Distribuição milimétrica no retângulo do setor
       const posX = secao.x1 + (secao.x2 - secao.x1) * proporcao;
-      const posY = secao.y1 + (secao.y2 - secao.y1) * proporcao;
+      const posY = secao.y1 + (secao.y2 - secao.y1) * (1 - proporcao);
 
       return { x: Math.round(posX), y: Math.round(posY) };
     }
