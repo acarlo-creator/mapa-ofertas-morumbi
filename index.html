@@ -15,7 +15,6 @@
       background: #0b0f19; color: #fff; overflow: hidden;
     }
     
-    /* Header Minimalista Tech com Seleção de Origem */
     #header {
       position: absolute; top: 10px; left: 10px; right: 10px; height: 55px;
       background: rgba(15, 23, 42, 0.9); display: flex; align-items: center;
@@ -25,27 +24,19 @@
     }
     
     .origem-selector { display: flex; align-items: center; gap: 6px; }
-    .origem-selector label { font-size: 11px; font-weight: 800; color: #00e65c; text-transform: uppercase; white-space: nowrap; }
+    .origem-selector label { font-size: 11px; font-weight: 800; color: #00e65c; text-transform: uppercase; }
     .origem-selector select {
       background: #1e293b; color: #fff; border: 1px solid rgba(0, 230, 92, 0.5);
       padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; outline: none;
     }
 
-    #header .badge { 
-      background: rgba(229, 57, 53, 0.2); color: #ff4d4d; border: 1px solid #e53935;
-      padding: 4px 8px; border-radius: 16px; font-size: 10px; font-weight: 800; 
-    }
+    #map { width: 100vw; height: calc(100vh - 75px); margin-top: 75px; background: #0b0f19; z-index: 1; }
 
-    /* Area do Mapa */
-    #map { 
-      width: 100vw; height: calc(100vh - 75px); margin-top: 75px; 
-      background: #0b0f19; z-index: 1; 
-    }
-
-    /* Marcador Pulse Neon */
     .custom-neon-pin {
-      width: 18px; height: 18px; background: #00e65c; border-radius: 50%;
+      width: 22px; height: 22px; background: #00e65c; border-radius: 50%;
       border: 3px solid #ffffff; box-shadow: 0 0 15px #00e65c;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 900; color: #0b0f19;
       animation: pinGlow 1.5s infinite alternate; cursor: pointer;
     }
     @keyframes pinGlow {
@@ -53,7 +44,6 @@
       to { box-shadow: 0 0 18px #00e65c; }
     }
 
-    /* Popups Clean & Tech */
     .leaflet-popup-content-wrapper { 
       border-radius: 12px; padding: 0; overflow: hidden; 
       background: rgba(15, 23, 42, 0.95) !important; color: #fff;
@@ -62,21 +52,21 @@
     .leaflet-popup-tip { background: rgba(15, 23, 42, 0.95); }
     .leaflet-popup-content { margin: 0 !important; width: 220px !important; }
     
-    .card-oferta { padding: 12px; text-align: center; }
-    .card-oferta .tag-campanha { 
-      display: inline-block; background: rgba(0, 230, 92, 0.15); color: #00e65c; 
-      border: 1px solid rgba(0, 230, 92, 0.4); font-size: 9px; font-weight: 800; 
-      padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 6px; 
+    .card-oferta { padding: 14px; text-align: center; }
+    .card-oferta .tag-placa {
+      display: inline-block; background: #00e65c; color: #0b0f19; 
+      font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 4px; 
+      text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;
     }
-    .card-oferta h3 { margin: 0 0 6px 0; font-size: 13px; color: #ffffff; font-weight: 700; }
+    .card-oferta h3 { margin: 0 0 6px 0; font-size: 14px; color: #ffffff; font-weight: 700; line-height: 1.2; }
     .card-oferta img { width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin: 4px 0; border: 1px solid rgba(255,255,255,0.1); }
-    .card-oferta .preco-container { margin-top: 4px; background: rgba(255,255,255,0.05); padding: 5px; border-radius: 6px; }
+    .card-oferta .preco-container { margin-top: 6px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 6px; }
     .card-oferta .preco-de { text-decoration: line-through; color: #64748b; font-size: 10px; }
-    .card-oferta .preco-por { color: #00e65c; font-size: 17px; font-weight: 900; }
+    .card-oferta .preco-por { color: #00e65c; font-size: 18px; font-weight: 900; }
     
     .btn-rota {
-      margin-top: 8px; width: 100%; background: #00e65c; color: #0b0f19;
-      border: none; padding: 8px; border-radius: 6px; font-weight: 900;
+      margin-top: 10px; width: 100%; background: #00e65c; color: #0b0f19;
+      border: none; padding: 9px; border-radius: 6px; font-weight: 900;
       cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; gap: 4px;
       text-transform: uppercase; transition: all 0.2s;
     }
@@ -87,16 +77,16 @@
 
   <div id="header">
     <div class="origem-selector">
-      <label for="select-origem">📍 Você está em:</label>
+      <label for="select-origem">📍 Estou em:</label>
       <select id="select-origem" onchange="atualizarPontoOrigem()">
         <option value="430,140">Entrada Principal</option>
-        <option value="635,895">Materiais de Construção</option>
-        <option value="275,675">Pisos e Revestimentos</option>
-        <option value="610,600">Tintas</option>
         <option value="290,275">Iluminação</option>
+        <option value="610,600">Tintas</option>
+        <option value="540,370">Jardim</option>
         <option value="280,470">Decoração</option>
         <option value="450,600">Cozinhas</option>
-        <option value="540,370">Jardim</option>
+        <option value="275,675">Pisos e Revestimentos</option>
+        <option value="635,895">Materiais de Construção</option>
         <option value="655,370">Ferramentas</option>
         <option value="745,600">Ferragens</option>
         <option value="785,400">Materiais Elétricos</option>
@@ -104,7 +94,6 @@
         <option value="470,245">Caixas</option>
       </select>
     </div>
-    <span class="badge">🔥 OFERTAS</span>
   </div>
 
   <div id="map"></div>
@@ -131,14 +120,6 @@
 
     let linhaRotaAtual = null;
     let marcadorOrigem = null;
-
-    const neonIcon = L.divIcon({
-      className: 'custom-neon-pin',
-      iconSize: [18, 18],
-      iconAnchor: [9, 9]
-    });
-
-    // Ponto Central dos Corredores para cálculo de Rota
     const CORREDOR_CENTRAL = [450, 450];
 
     function obterCoordenadasOrigem() {
@@ -151,7 +132,6 @@
       const [x, y] = obterCoordenadasOrigem();
       if (marcadorOrigem) map.removeLayer(marcadorOrigem);
       
-      // Ícone do ponto de origem atual
       const origemIcon = L.divIcon({
         className: '',
         html: '<div style="background:#38bdf8; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 10px #38bdf8;"></div>',
@@ -162,18 +142,36 @@
       marcadorOrigem = L.marker([y, x], { icon: origemIcon }).addTo(map).bindTooltip("Você está aqui", { permanent: true, direction: "top" });
     }
 
-    // Calcula a rota automática ligando Origem -> Corredor -> Destino
+    // Calcula o deslocamento no mapa com base no número da placa e range lidos da planilha
+    function calcularOffsetPlaca(baseX, baseY, placaNumStr, rangeStr) {
+      const placa = parseInt(placaNumStr) || 1;
+      
+      let maxPlacas = 20;
+      if (rangeStr) {
+        const nums = rangeStr.match(/\d+/g);
+        if (nums && nums.length > 0) {
+          maxPlacas = parseInt(nums[nums.length - 1]);
+        }
+      }
+
+      // Distribui o deslocamento horizontalmente e verticalmente no setor
+      const proporcao = Math.min(Math.max(placa / maxPlacas, 0.05), 1.0);
+      const offsetX = Math.round(baseX + (proporcao - 0.5) * 80);
+      const offsetY = Math.round(baseY + (proporcao - 0.5) * 40);
+
+      return { x: offsetX, y: offsetY };
+    }
+
     function GERAR_ROTA_AUTOMATICA(destX, destY) {
       if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
 
       const [origX, origY] = obterCoordenadasOrigem();
 
-      // Monta os pontos da rota passando pelos corredores da loja
       const pontosRota = [
-        [origY, origX],                      // Ponto inicial do cliente
-        [origY, CORREDOR_CENTRAL[0]],        // Saída para o corredor
-        [destY, CORREDOR_CENTRAL[0]],        // Deslocamento pelo corredor
-        [destY, destX]                       // Ponto final da oferta
+        [origY, origX],
+        [origY, CORREDOR_CENTRAL[0]],
+        [destY, CORREDOR_CENTRAL[0]],
+        [destY, destX]
       ];
 
       linhaRotaAtual = L.polyline(pontosRota, {
@@ -211,14 +209,24 @@
           });
 
           if (String(item.ativo).trim() === "1") {
-            const posX = parseFloat(item.x);
-            const posY = parseFloat(item.y);
+            const baseX = parseFloat(item.x);
+            const baseY = parseFloat(item.y);
 
-            if (!isNaN(posX) && !isNaN(posY)) {
+            if (!isNaN(baseX) && !isNaN(baseY)) {
+              // Calcula a posição exata da placa usando os dados da planilha
+              const pos = calcularOffsetPlaca(baseX, baseY, item.placa_corredor, item.range_placas);
+
+              const neonIcon = L.divIcon({
+                className: 'custom-neon-pin',
+                html: `📍`,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+              });
+
               const card = document.createElement('div');
               card.className = 'card-oferta';
               card.innerHTML = `
-                <span class="tag-campanha">${item.titulo_campanha || 'Oferta'}</span>
+                <span class="tag-placa">📍 PLACA ${item.placa_corredor || 'CORREDOR'}</span>
                 <h3>${item.produto_destaque || ''}</h3>
                 ${item.foto_url ? `<img src="${item.foto_url}" alt="Foto">` : ''}
                 <div class="preco-container">
@@ -229,14 +237,14 @@
 
               const btn = document.createElement('button');
               btn.className = 'btn-rota';
-              btn.innerHTML = '🚶‍♂️ Traçar Caminho Até Aqui';
-              btn.onclick = () => GERAR_ROTA_AUTOMATICA(posX, posY);
+              btn.innerHTML = '🚶‍♂️ Traçar Rota Até Esta Placa';
+              btn.onclick = () => GERAR_ROTA_AUTOMATICA(pos.x, pos.y);
               card.appendChild(btn);
 
-              const marker = L.marker([posY, posX], { icon: neonIcon }).addTo(map).bindPopup(card);
+              const marker = L.marker([pos.y, pos.x], { icon: neonIcon }).addTo(map).bindPopup(card);
 
               marker.on('click', () => {
-                GERAR_ROTA_AUTOMATICA(posX, posY);
+                GERAR_ROTA_AUTOMATICA(pos.x, pos.y);
               });
             }
           }
