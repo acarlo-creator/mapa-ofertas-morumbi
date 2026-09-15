@@ -79,19 +79,15 @@
     <div class="origem-selector">
       <label for="select-origem">📍 Estou em:</label>
       <select id="select-origem" onchange="atualizarPontoOrigem()">
-        <option value="430,140">Entrada Principal</option>
-        <option value="290,275">Iluminação</option>
-        <option value="610,600">Tintas</option>
-        <option value="540,370">Jardim</option>
-        <option value="280,470">Decoração</option>
-        <option value="450,600">Cozinhas</option>
-        <option value="275,675">Pisos e Revestimentos</option>
-        <option value="635,895">Materiais de Construção</option>
-        <option value="655,370">Ferramentas</option>
-        <option value="745,600">Ferragens</option>
-        <option value="785,400">Materiais Elétricos</option>
-        <option value="775,755">Madeiras</option>
-        <option value="470,245">Caixas</option>
+        <option value="iluminacao">Iluminação</option>
+        <option value="tintas">Tintas</option>
+        <option value="jardim">Jardim</option>
+        <option value="ferramentas">Ferramentas</option>
+        <option value="cozinhas">Cozinhas</option>
+        <option value="pisos">Pisos e Revestimentos</option>
+        <option value="materiais">Materiais de Construção</option>
+        <option value="decoracao">Decoração</option>
+        <option value="banheiros">Banheiros</option>
       </select>
     </div>
   </div>
@@ -104,6 +100,24 @@
     const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
     const GID = "2013806288";
     const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
+
+    // Polígonos fixos das seções no mapa (Coordenadas reais do layout da loja Morumbi)
+    const SECOES_MAPA = {
+      "iluminacao": { x1: 200, x2: 380, y1: 200, y2: 350 },
+      "organizacao": { x1: 350, x2: 480, y1: 320, y2: 420 },
+      "decoracao": { x1: 200, x2: 360, y1: 360, y2: 580 },
+      "pisos": { x1: 200, x2: 350, y1: 600, y2: 750 },
+      "retirada": { x1: 200, x2: 360, y1: 760, y2: 880 },
+      "cozinhas": { x1: 370, x2: 530, y1: 520, y2: 680 },
+      "banheiros": { x1: 370, x2: 600, y1: 690, y2: 820 },
+      "tintas": { x1: 540, x2: 680, y1: 520, y2: 680 },
+      "jardim": { x1: 490, x2: 590, y1: 320, y2: 420 },
+      "ferramentas": { x1: 600, x2: 710, y1: 320, y2: 420 },
+      "ferragens": { x1: 690, x2: 800, y1: 520, y2: 680 },
+      "eletrica": { x1: 720, x2: 850, y1: 320, y2: 480 },
+      "madeiras": { x1: 720, x2: 830, y1: 690, y2: 820 },
+      "materiais": { x1: 540, x2: 730, y1: 830, y2: 960 }
+    };
 
     const bounds = [[0, 0], [1000, 1000]];
     const map = L.map('map', {
@@ -122,14 +136,41 @@
     let marcadorOrigem = null;
     const CORREDOR_CENTRAL = [450, 450];
 
-    function obterCoordenadasOrigem() {
-      const val = document.getElementById('select-origem').value;
-      const [x, y] = val.split(',').map(Number);
-      return [x, y];
+    // Calcula a posição exata da placa distribuindo-a dentro da faixa (range) da seção
+    function obterCoordenadaPorPlaca(setorKey, placaNumStr, rangeStr) {
+      const secao = SECOES_MAPA[setorKey];
+      if (!secao) return null;
+
+      const placaVal = parseInt(placaNumStr) || 1;
+      let minPlaca = 1, maxPlaca = 20;
+
+      if (rangeStr && rangeStr.includes('-')) {
+        const partes = rangeStr.split('-').map(n => parseInt(n.trim()));
+        minPlaca = partes[0] || 1;
+        maxPlaca = partes[1] || 20;
+      }
+
+      // Calcula a proporção da placa em relação ao total da seção (0 a 1)
+      const totalPlacas = Math.max(maxPlaca - minPlaca + 1, 1);
+      const proporcao = Math.min(Math.max((placaVal - minPlaca) / totalPlacas, 0), 1);
+
+      // Aplica a posição relativa dentro do quadrado da seção
+      const posX = secao.x1 + (secao.x2 - secao.x1) * proporcao;
+      const posY = secao.y1 + (secao.y2 - secao.y1) * (1 - proporcao);
+
+      return { x: Math.round(posX), y: Math.round(posY) };
+    }
+
+    function obterCoordenadaSetor(setorKey) {
+      const secao = SECOES_MAPA[setorKey];
+      if (!secao) return [430, 140];
+      return [(secao.x1 + secao.x2) / 2, (secao.y1 + secao.y2) / 2];
     }
 
     function atualizarPontoOrigem() {
-      const [x, y] = obterCoordenadasOrigem();
+      const setorSel = document.getElementById('select-origem').value;
+      const [x, y] = obterCoordenadaSetor(setorSel);
+
       if (marcadorOrigem) map.removeLayer(marcadorOrigem);
       
       const origemIcon = L.divIcon({
@@ -142,30 +183,11 @@
       marcadorOrigem = L.marker([y, x], { icon: origemIcon }).addTo(map).bindTooltip("Você está aqui", { permanent: true, direction: "top" });
     }
 
-    // Calcula o deslocamento no mapa com base no número da placa e range lidos da planilha
-    function calcularOffsetPlaca(baseX, baseY, placaNumStr, rangeStr) {
-      const placa = parseInt(placaNumStr) || 1;
-      
-      let maxPlacas = 20;
-      if (rangeStr) {
-        const nums = rangeStr.match(/\d+/g);
-        if (nums && nums.length > 0) {
-          maxPlacas = parseInt(nums[nums.length - 1]);
-        }
-      }
-
-      // Distribui o deslocamento horizontalmente e verticalmente no setor
-      const proporcao = Math.min(Math.max(placa / maxPlacas, 0.05), 1.0);
-      const offsetX = Math.round(baseX + (proporcao - 0.5) * 80);
-      const offsetY = Math.round(baseY + (proporcao - 0.5) * 40);
-
-      return { x: offsetX, y: offsetY };
-    }
-
     function GERAR_ROTA_AUTOMATICA(destX, destY) {
       if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
 
-      const [origX, origY] = obterCoordenadasOrigem();
+      const setorSel = document.getElementById('select-origem').value;
+      const [origX, origY] = obterCoordenadaSetor(setorSel);
 
       const pontosRota = [
         [origY, origX],
@@ -209,13 +231,10 @@
           });
 
           if (String(item.ativo).trim() === "1") {
-            const baseX = parseFloat(item.x);
-            const baseY = parseFloat(item.y);
+            const setorKey = (item.id_setor || '').toLowerCase().trim();
+            const pos = obterCoordenadaPorPlaca(setorKey, item.placa_corredor, item.range_placas);
 
-            if (!isNaN(baseX) && !isNaN(baseY)) {
-              // Calcula a posição exata da placa usando os dados da planilha
-              const pos = calcularOffsetPlaca(baseX, baseY, item.placa_corredor, item.range_placas);
-
+            if (pos) {
               const neonIcon = L.divIcon({
                 className: 'custom-neon-pin',
                 html: `📍`,
