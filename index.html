@@ -39,7 +39,7 @@
     background:var(--map-bg); color:var(--ink); overflow:hidden;
     -webkit-font-smoothing:antialiased;
   }
-  h1,h2,h3,.brand,.price-now,.chip-count,.badge-count{ font-family:'Poppins',sans-serif; }
+  h1,h2,h3,.brand,.price-now,.chip-count{ font-family:'Poppins',sans-serif; }
   button{ font-family:inherit; }
 
   /* ---------- MAP ---------- */
@@ -53,23 +53,10 @@
     background:linear-gradient(180deg, rgba(10,20,13,0.72) 0%, rgba(10,20,13,0.38) 65%, rgba(10,20,13,0) 100%);
     pointer-events:none;
   }
-  #topbar .row{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    pointer-events:auto;
-  }
+  #topbar .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; pointer-events:auto; }
   .brand{ display:flex; flex-direction:column; line-height:1; color:#fff; }
   .brand b{ font-size:15px; font-weight:800; letter-spacing:0.2px; }
   .brand span{ font-family:'Inter',sans-serif; font-size:11px; font-weight:500; color:#CFEBD8; margin-top:3px; }
-
-  .icon-btn{
-    width:38px; height:38px; border-radius:11px; border:none; cursor:pointer;
-    background:rgba(255,255,255,0.14); backdrop-filter:blur(6px);
-    display:flex; align-items:center; justify-content:center; color:#fff;
-    box-shadow:0 2px 10px rgba(0,0,0,0.18); flex-shrink:0;
-    transition:background .15s ease, transform .15s ease;
-  }
-  .icon-btn:active{ transform:scale(0.92); background:rgba(255,255,255,0.26); }
-  .icon-btn.on{ background:var(--lm-orange); }
 
   .status-pill{
     display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.14);
@@ -79,10 +66,7 @@
   .status-pill .dot{ width:7px; height:7px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
 
   /* ---------- SECTOR CHIPS ---------- */
-  #chips{
-    margin-top:10px; display:flex; gap:8px; overflow-x:auto; pointer-events:auto;
-    padding:2px 1px 6px; scrollbar-width:none;
-  }
+  #chips{ margin-top:10px; display:flex; gap:8px; overflow-x:auto; pointer-events:auto; padding:2px 1px 6px; scrollbar-width:none; }
   #chips::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0; display:flex; align-items:center; gap:6px;
@@ -98,64 +82,27 @@
     display:flex; align-items:center; justify-content:center;
   }
 
-  /* ---------- MAP PIN (ofertas) ---------- */
-  .lm-pin-wrap{ position:relative; width:38px; height:50px; }
+  /* ---------- MAP PIN ---------- */
+  .lm-pin-wrap{ position:relative; width:34px; height:46px; }
   .lm-pin{
-    width:34px; height:34px; background:var(--lm-green); border:3px solid #fff;
+    width:30px; height:30px; background:var(--lm-green); border:3px solid #fff;
     border-radius:50% 50% 50% 0; transform:rotate(-45deg);
     position:absolute; left:2px; top:2px;
     box-shadow:0 6px 14px rgba(0,0,0,0.35);
     display:flex; align-items:center; justify-content:center;
   }
-  .lm-pin svg{ transform:rotate(45deg); width:15px; height:15px; }
-  .lm-pin.multi{ background:var(--lm-green-deep); }
-  .lm-pin-badge{
-    position:absolute; top:-4px; right:-2px; background:var(--lm-orange); color:#fff;
-    font-size:10px; font-weight:800; min-width:18px; height:18px; border-radius:9px;
-    display:flex; align-items:center; justify-content:center; border:2px solid #fff;
-    padding:0 3px;
-  }
+  .lm-pin svg{ transform:rotate(45deg); width:13px; height:13px; }
   @keyframes dropIn{ from{ transform:translateY(-14px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
   .lm-pin-wrap{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
 
-  /* ---------- "VOCÊ ESTÁ AQUI" MARKER ---------- */
-  .me-pin-wrap{ width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:grab; }
-  .me-pin{
-    width:18px; height:18px; border-radius:50%; background:var(--lm-orange);
-    border:3px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,0.35); position:relative; z-index:2;
+  /* ---------- FAB ---------- */
+  #fab-list{
+    position:absolute; right:14px; bottom:calc(20px + var(--safe-b));
+    z-index:850; background:var(--lm-green-deep); color:#fff; border:none;
+    border-radius:26px; padding:13px 18px 13px 16px; display:flex; align-items:center; gap:8px;
+    font-size:13.5px; font-weight:700; box-shadow:var(--shadow-lg); cursor:pointer;
   }
-  .me-pin-ring{
-    position:absolute; width:34px; height:34px; border-radius:50%;
-    border:2px solid var(--lm-orange); opacity:.55; animation:mePulse 1.7s infinite;
-  }
-  @keyframes mePulse{ 0%{ transform:scale(.4); opacity:.6; } 100%{ transform:scale(1.7); opacity:0; } }
-
-  /* ---------- CORRIDOR EDITOR NODES ---------- */
-  .node-pt{
-    width:22px; height:22px; border-radius:50%; background:var(--ink); color:#fff;
-    border:2px solid #fff; font-size:10px; font-weight:700; display:flex;
-    align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.3);
-  }
-  .node-pt.selected{ background:var(--lm-orange); }
-
-  /* ---------- FABs ---------- */
-  #fab-list, #fab-meulocal{
-    position:absolute; bottom:calc(20px + var(--safe-b)); z-index:850; border:none;
-    border-radius:26px; padding:13px 16px; display:flex; align-items:center; gap:8px;
-    font-size:13px; font-weight:700; box-shadow:var(--shadow-lg); cursor:pointer;
-  }
-  #fab-list{ right:14px; background:var(--lm-green-deep); color:#fff; padding-right:18px; }
-  #fab-meulocal{ left:14px; background:#fff; color:var(--ink); border:1px solid var(--line); }
-  #fab-meulocal.on{ background:var(--lm-orange); color:#fff; border-color:var(--lm-orange); }
-  #fab-list:active, #fab-meulocal:active{ transform:scale(0.96); }
-
-  #route-clear{
-    position:absolute; left:50%; transform:translateX(-50%); top:calc(120px + var(--safe-t));
-    z-index:860; background:var(--ink); color:#fff; border:none; border-radius:22px;
-    padding:9px 16px; font-size:12.5px; font-weight:700; display:none; align-items:center; gap:7px;
-    box-shadow:var(--shadow-sm); cursor:pointer;
-  }
-  #route-clear.show{ display:flex; }
+  #fab-list:active{ transform:scale(0.96); }
 
   /* ---------- BACKDROP ---------- */
   .backdrop{
@@ -164,7 +111,7 @@
   }
   .backdrop.show{ opacity:1; pointer-events:auto; }
 
-  /* ---------- BOTTOM SHEET (shared) ---------- */
+  /* ---------- BOTTOM SHEET ---------- */
   .sheet{
     position:fixed; left:0; right:0; bottom:0; z-index:1001;
     background:var(--paper); border-radius:20px 20px 0 0;
@@ -181,43 +128,29 @@
     border:none; background:var(--paper-warm); display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
 
-  /* Offer detail sheet */
-  #sheet-detail .carousel{
-    display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none;
-    padding:4px 0 6px;
-  }
-  #sheet-detail .carousel::-webkit-scrollbar{ display:none; }
-  .offer-card{
-    flex:0 0 100%; scroll-snap-align:center; padding:6px 18px 16px;
-  }
-  .offer-card .tag{
+  /* Offer detail sheet (uma oferta por vez) */
+  #detail-card{ overflow-y:auto; padding:6px 18px 18px; }
+  #detail-card .tag{
     display:inline-flex; align-items:center; gap:5px; background:var(--lm-green-soft); color:var(--lm-green-deep);
     font-size:11px; font-weight:700; padding:5px 10px; border-radius:7px; margin-bottom:10px;
   }
-  .offer-card .setor-label{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:2px; }
-  .offer-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
-  .offer-card .photo{
+  #detail-card .setor-label{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:2px; }
+  #detail-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
+  #detail-card .photo{
     width:100%; height:150px; border-radius:14px; object-fit:cover; background:var(--paper-warm);
     border:1px solid var(--line); margin-bottom:12px;
   }
-  .price-row{ display:flex; align-items:flex-end; gap:10px; margin-bottom:14px; }
+  .price-row{ display:flex; align-items:flex-end; gap:10px; margin-bottom:12px; }
   .price-was{ text-decoration:line-through; color:var(--ink-soft); font-size:13px; font-weight:500; }
   .price-now{ color:var(--lm-green-deep); font-size:25px; font-weight:800; }
   .price-off{
     background:var(--lm-orange); color:#fff; font-size:11px; font-weight:800; padding:3px 8px;
     border-radius:6px; margin-bottom:3px;
   }
-  .btn-route{
-    width:100%; background:var(--lm-green); color:#fff; border:none; padding:13px; border-radius:12px;
-    font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px;
-    cursor:pointer; box-shadow:0 6px 16px rgba(30,138,60,0.35);
+  .corredor-info{
+    display:flex; align-items:center; gap:8px; background:var(--lm-green-soft); color:var(--lm-green-deep);
+    font-size:13.5px; font-weight:600; padding:11px 13px; border-radius:12px; margin-top:2px;
   }
-  .btn-route:active{ transform:scale(0.98); }
-  .btn-route.secondary{ background:var(--paper-warm); color:var(--ink); box-shadow:none; }
-
-  .dots{ display:flex; justify-content:center; gap:6px; padding-bottom:2px; }
-  .dots span{ width:6px; height:6px; border-radius:50%; background:var(--line); }
-  .dots span.active{ background:var(--lm-green); width:16px; border-radius:3px; }
 
   /* All-offers list sheet */
   #sheet-list .list-inner{ overflow-y:auto; padding:2px 6px 10px; }
@@ -225,55 +158,20 @@
     font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px;
     color:var(--ink-soft); padding:14px 12px 6px;
   }
-  .list-row{
-    display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; cursor:pointer;
-  }
+  .list-row{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; cursor:pointer; }
   .list-row:active{ background:var(--paper-warm); }
   .list-row img{ width:52px; height:52px; border-radius:10px; object-fit:cover; background:var(--paper-warm); flex-shrink:0; }
   .list-row .info{ flex:1; min-width:0; }
   .list-row .info b{ display:block; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.25;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .list-row .info .lp{ font-size:12.5px; color:var(--lm-green-deep); font-weight:700; margin-top:2px; }
-
-  /* ---------- ADMIN PANEL (equipe) ---------- */
-  #admin-panel{
-    position:fixed; left:10px; right:10px; bottom:calc(10px + var(--safe-b)); z-index:1002;
-    background:var(--ink); color:#fff; border-radius:16px; padding:12px 14px;
-    box-shadow:var(--shadow-lg); display:none; flex-direction:column; gap:9px;
-  }
-  #admin-panel.show{ display:flex; }
-  #admin-panel .ap-head{ display:flex; align-items:center; justify-content:space-between; }
-  #admin-panel .ap-head b{ font-size:13px; font-weight:700; }
-  #admin-panel .ap-head small{ color:#9BB3A2; font-size:11.5px; }
-  #admin-panel .ap-hint{ color:#9BB3A2; font-size:11.5px; line-height:1.4; }
-  #admin-panel .ap-string{
-    background:rgba(255,255,255,0.08); border-radius:9px; padding:9px 10px; font-size:11px;
-    font-family:'SFMono-Regular',Menlo,monospace; color:#B9F0CB; word-break:break-all;
-    max-height:64px; overflow-y:auto; display:none;
-  }
-  #admin-panel .ap-string.show{ display:block; }
-  .ap-modes{ display:flex; gap:8px; }
-  .ap-mode-btn{
-    flex:1; border:1px solid rgba(255,255,255,0.16); background:transparent; color:#fff;
-    border-radius:9px; padding:8px 6px; font-size:12px; font-weight:700; cursor:pointer;
-  }
-  .ap-mode-btn.active{ background:var(--lm-green); border-color:var(--lm-green); }
-  #admin-panel .ap-actions{ display:flex; gap:8px; }
-  .ap-btn{
-    flex:1; border:none; border-radius:9px; padding:9px 6px; font-size:12px; font-weight:700; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:5px;
-  }
-  .ap-btn.copy{ background:var(--lm-green); color:#fff; }
-  .ap-btn.undo{ background:rgba(255,255,255,0.12); color:#fff; }
-  .ap-btn.clear{ background:rgba(255,255,255,0.12); color:#FF9E8A; }
-  .ap-btn.done{ background:var(--lm-orange); color:#fff; }
+  .list-row .info .cr{ font-size:11px; color:var(--ink-soft); margin-top:1px; }
 
   /* ---------- TOAST ---------- */
   #toast{
     position:fixed; left:50%; top:calc(16px + var(--safe-t)); transform:translate(-50%,-140%);
     background:var(--ink); color:#fff; font-size:13px; font-weight:600; padding:10px 16px;
     border-radius:11px; z-index:1200; box-shadow:var(--shadow-sm); transition:transform .25s ease;
-    display:flex; align-items:center; gap:8px; max-width:86vw; text-align:center;
   }
   #toast.show{ transform:translate(-50%,0); }
 
@@ -300,53 +198,34 @@
 
   <div id="map"></div>
 
-  <!-- Estado: loading / erro / vazio -->
   <div id="state-overlay">
     <div class="spinner"></div>
     <p id="state-text">Carregando ofertas do dia…</p>
     <button id="state-retry">Tentar novamente</button>
   </div>
 
-  <!-- Barra superior -->
   <div id="topbar">
     <div class="row">
       <div class="brand"><b>LEROY MERLIN</b><span>Morumbi · Mapa de ofertas</span></div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <div class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">—</span></div>
-        <button class="icon-btn" id="btn-admin" title="Editor de corredores (equipe)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12h4l2-5 4 10 2-5h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-      </div>
+      <div class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">—</span></div>
     </div>
     <div id="chips"></div>
   </div>
 
-  <!-- Ações flutuantes -->
-  <button id="fab-meulocal">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    <span id="fab-meulocal-label">Marcar meu local</span>
-  </button>
   <button id="fab-list">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
-    Ofertas
+    Ver todas as ofertas
   </button>
 
-  <button id="route-clear">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
-    Limpar caminho
-  </button>
-
-  <!-- Backdrop -->
   <div class="backdrop" id="backdrop"></div>
 
-  <!-- Sheet: detalhe da(s) oferta(s) -->
+  <!-- Sheet: detalhe de UMA oferta -->
   <div class="sheet" id="sheet-detail">
     <div class="sheet-handle" id="handle-detail"><span></span></div>
     <button class="sheet-close" id="close-detail">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#16211A" stroke-width="2.2" stroke-linecap="round"/></svg>
     </button>
-    <div class="carousel" id="carousel"></div>
-    <div class="dots" id="dots"></div>
+    <div id="detail-card"></div>
   </div>
 
   <!-- Sheet: lista completa -->
@@ -359,26 +238,6 @@
     <div class="list-inner" id="list-inner"></div>
   </div>
 
-  <!-- Painel do editor de corredores (equipe) -->
-  <div id="admin-panel">
-    <div class="ap-head">
-      <b>Editor de corredores</b>
-      <small id="ap-count">0 nós · 0 conexões</small>
-    </div>
-    <div class="ap-modes">
-      <button class="ap-mode-btn active" id="ap-mode-no">+ Nó</button>
-      <button class="ap-mode-btn" id="ap-mode-aresta">🔗 Conectar nós</button>
-    </div>
-    <div class="ap-hint" id="ap-hint">Toque no mapa para marcar um ponto do corredor.</div>
-    <div class="ap-string" id="ap-string"></div>
-    <div class="ap-actions">
-      <button class="ap-btn undo" id="ap-undo">Desfazer</button>
-      <button class="ap-btn clear" id="ap-clear">Limpar tudo</button>
-      <button class="ap-btn copy" id="ap-copy">Exportar</button>
-      <button class="ap-btn done" id="ap-done">Concluir</button>
-    </div>
-  </div>
-
   <div id="toast"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -388,43 +247,35 @@
   ========================================================================= */
   const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
   const GID = "2013806288";
-  const CORREDOR_GID = "";               // <- opcional: GID de uma aba "Corredores" (veja abaixo)
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  /* Colunas da aba de OFERTAS (nomes flexíveis — o app reconhece variações
-     de acento/espaço/underscore, então pode nomear do jeito que for mais
-     natural na planilha):
-       id_setor, nome_setor, placas_setor (opcional, ex: "1-20"),
-       placa_oferta, ativo, titulo_campanha, codigo_produto,
-       produto_destaque, preco_de, preco_por, foto_url
-     - "placa_oferta" é o número da placa/sinalização onde a oferta fica
-       dentro do setor (ex: 17). É esse número (junto com id_setor) que
-       o app usa pra achar a posição exata no mapa e traçar o caminho —
-       não precisa mais de x/y na aba de Ofertas.
-     - Várias linhas com o mesmo id_setor + mesma placa_oferta viram 1
-       pino só, com carrossel. Placas diferentes = pinos diferentes,
-       cada oferta aparece no lugar certo dentro do setor.
-     - "placas_setor" é só informativo (quantas placas o setor tem ao
-       todo), não é usado pelo cálculo do caminho.
+  /* Colunas da planilha de ofertas:
+       id_setor, nome_setor, ativo, titulo_campanha, produto_destaque,
+       preco_de, preco_por, foto_url, corredor, x, y, xmin, xmax, ymin, ymax
 
-     Aba "Corredores" (obrigatória para o caminho seguir os corredores
-     em vez de linha reta) — crie com as colunas:
-     tipo,id,x,y,de,para,setor,placa
-       nó de corredor (só passagem):  no,n1,120,300,,,,
-       nó de placa (é uma oferta):    no,n17,650,440,,,iluminacao,17
-       aresta (liga dois nós):        aresta,,,,n1,n2,,
-     "setor" e "placa" num nó dizem "aqui é a placa X do setor Y" — tem
-     que bater exatamente com id_setor e placa_oferta da aba Ofertas.
-     Ligue esse nó por arestas até o corredor principal, e o corredor
-     principal até os pontos onde o cliente costuma partir. Assim o
-     caminho todo — até dentro do setor — segue os nós, nunca corta por
-     cima de outra seção.
-     Use o botão de corredores (ícone no topo) pra desenhar essa malha
-     tocando no mapa — ao criar um nó ele pergunta se é uma placa (e de
-     qual setor/número) — e o botão "Exportar" já gera essas linhas
-     prontas pra colar na planilha. Depois, coloque o GID dessa aba em
-     CORREDOR_GID abaixo. */
+     - "corredor": número/nome do corredor daquela oferta (ex: "185"). Aparece
+       na própria oferta como "Você pode encontrar no corredor 185".
+
+     - "x"/"y": posição exata do pino dessa oferta (opcional, por linha).
+
+     - "xmin,xmax,ymin,ymax": a ÁREA (retângulo) da seção inteira — os mesmos
+       números que você já mapeou na sua planilha de extensões. Só precisa
+       preencher UMA VEZ por seção (em qualquer linha daquele id_setor).
+       Com isso preenchido, toda oferta daquele setor que NÃO tiver x/y
+       próprio é posicionada automaticamente dentro dessa área, já espaçada
+       das outras — sem precisar calcular ponto por ponto na mão.
+
+     Prioridade por oferta: se a linha tiver x/y preenchido, usa esse ponto
+     exato; senão, usa a área xmin/xmax/ymin/ymax da seção pra posicionar
+     sozinho. Se nem um nem outro existir, a oferta não aparece no mapa
+     (mas continua contando nos números do topo — ela só precisa de uma
+     posição definida de um jeito ou de outro). */
+
+  // distância mínima (em unidades do mapa, escala 0–1000) entre dois pontos
+  // gerados automaticamente dentro da mesma seção — ajuste este número
+  // olhando o resultado no mapa até a distância parecer ~1–2cm na tela.
+  const ESPACO_MIN_PONTOS = 40;
 
   /* =========================================================================
      MAPA BASE
@@ -444,8 +295,6 @@
   map.fitBounds(bounds);
 
   const ofertasLayer = L.layerGroup().addTo(map);
-  const rotaLayer = L.layerGroup().addTo(map);
-  const adminLayer = L.layerGroup().addTo(map);
 
   /* =========================================================================
      HELPERS DE UI
@@ -460,14 +309,10 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toast._tm);
-    toast._tm = setTimeout(()=> t.classList.remove('show'), 2000);
+    toast._tm = setTimeout(()=> t.classList.remove('show'), 1800);
   }
 
-  function openSheet(sheet){
-    closeSheets();
-    backdrop.classList.add('show');
-    sheet.classList.add('show');
-  }
+  function openSheet(sheet){ closeSheets(); backdrop.classList.add('show'); sheet.classList.add('show'); }
   function closeSheets(){
     backdrop.classList.remove('show');
     sheetDetail.classList.remove('show');
@@ -502,75 +347,45 @@
   }
 
   /* =========================================================================
-     ÍCONE DE PINO DE OFERTA
+     ÍCONE DO PINO
   ========================================================================= */
   const pinSvg = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2C7 2 3 5.9 3 10.5c0 4.2 3.5 8.2 8.1 11.2.55.36 1.24.36 1.8 0C17.5 18.7 21 14.7 21 10.5 21 5.9 17 2 12 2Zm0 11.2a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Z" fill="white"/></svg>`;
-
-  function criarIconeSetor(qtd){
-    const multi = qtd > 1;
+  function criarIconePin(){
     return L.divIcon({
       className: '',
-      html: `<div class="lm-pin-wrap">
-               <div class="lm-pin${multi ? ' multi' : ''}">${pinSvg}</div>
-               ${multi ? `<div class="lm-pin-badge">${qtd}</div>` : ''}
-             </div>`,
-      iconSize: [38, 50],
-      iconAnchor: [19, 46],
-      popupAnchor: [0, -40]
+      html: `<div class="lm-pin-wrap"><div class="lm-pin">${pinSvg}</div></div>`,
+      iconSize: [34, 46],
+      iconAnchor: [17, 42],
+      popupAnchor: [0, -36]
     });
   }
 
   /* =========================================================================
-     ESTADO: local do cliente, destino pendente, ofertas, corredores
+     DISTRIBUIÇÃO AUTOMÁTICA DE PONTOS DENTRO DA ÁREA DA SEÇÃO
   ========================================================================= */
-  let grupos = {};
-  let markersPorSetor = {};
-
-  let meuLocal = null;          // {x,y}
-  let meuLocalMarker = null;
-  let settingMeuLocal = false;
-  let pendingDestino = null;    // {x,y} — destino aguardando o cliente marcar o local
-
-  let CORREDOR_NODES = [];      // [{id,x,y}]
-  let CORREDOR_EDGES = [];      // [[id,id]]
-  let nodeSeq = 0;
-
-  let adminMode = false;
-  let adminSubMode = 'no';      // 'no' | 'aresta'
-  let selectedNodeId = null;
-
-  try{
-    const saved = localStorage.getItem('lm_meu_local');
-    if(saved) meuLocal = JSON.parse(saved);
-  }catch(e){}
-
-  function normKey(s){
-    return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  }
-  const CAMPOS_OFERTA = {
-    id_setor: ['idsetor','idsecao','idsecoes','idseção','id'],
-    nome_setor: ['nomesetor','setornome','nome','setor'],
-    placas_setor: ['placasdosetor','placassetor','placasetor','placas'],
-    placa_oferta: ['placadaoferta','placaoferta','placa','numplaca','numeroplaca'],
-    ativo: ['ativo'],
-    titulo_campanha: ['titulodacampanha','titulocampanha','titulo','campanha'],
-    codigo_produto: ['codigodoproduto','codigoproduto','codigo','sku'],
-    produto_destaque: ['produtodestaque','produto'],
-    preco_de: ['precode'],
-    preco_por: ['precopor'],
-    foto_url: ['fotourl','foto','imagem','imagemurl'],
-    x: ['x'], y: ['y'], rota: ['rota'], corredor: ['corredor','corredores']
-  };
-
-  function encontrarNoDaPlaca(idSetor, placa){
-    const s = String(idSetor||'').trim().toLowerCase(), p = String(placa||'').trim().toLowerCase();
-    if(!s || !p) return null;
-    return CORREDOR_NODES.find(n => (n.setor||'').trim().toLowerCase()===s && String(n.placa||'').trim().toLowerCase()===p) || null;
+  function distribuirNaCaixa(caixa, n){
+    const largura = Math.max(caixa.xmax - caixa.xmin, 1);
+    const altura  = Math.max(caixa.ymax - caixa.ymin, 1);
+    const cols = Math.max(1, Math.min(n, Math.floor(largura / ESPACO_MIN_PONTOS) + 1));
+    const rows = Math.ceil(n / cols);
+    const passoX = cols > 1 ? largura / (cols - 1) : 0;
+    const passoY = rows > 1 ? altura / (rows - 1) : 0;
+    const pontos = [];
+    for(let i = 0; i < n; i++){
+      const c = i % cols, r = Math.floor(i / cols);
+      const x = cols > 1 ? caixa.xmin + c * passoX : (caixa.xmin + caixa.xmax) / 2;
+      const y = rows > 1 ? caixa.ymin + r * passoY : (caixa.ymin + caixa.ymax) / 2;
+      pontos.push({ x: Math.round(x), y: Math.round(y) });
+    }
+    return pontos;
   }
 
   /* =========================================================================
-     CARREGAR E AGRUPAR OFERTAS
+     CARREGAR OFERTAS
   ========================================================================= */
+  let ofertasComPosicao = [];  // [{ oferta, grupo, x, y }]
+  let gruposAtivos = {};       // id_setor -> { nome_setor, caixa, ofertas:[] }
+
   async function carregarOfertas(){
     mostrarEstado('loading');
     try{
@@ -582,16 +397,7 @@
       if(lines.length < 2){ mostrarEstado('empty'); return; }
 
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const headerMap = {}; // campo canônico -> nome real do cabeçalho na planilha
-      headers.forEach(h => {
-        const n = normKey(h);
-        for(const canon in CAMPOS_OFERTA){
-          if(CAMPOS_OFERTA[canon].includes(n)){ headerMap[canon] = h; break; }
-        }
-      });
-
-      grupos = {};
-      const placasNaoEncontradas = [];
+      gruposAtivos = {};
 
       for(let i = 1; i < lines.length; i++){
         const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -601,48 +407,52 @@
           val = val.replace(/^"|"$/g, '');
           item[h] = val;
         });
-        // espelha nos nomes canônicos — assim o resto do app usa sempre
-        // oferta.preco_de, oferta.titulo_campanha etc., não importa como
-        // a coluna foi nomeada de verdade na planilha
-        Object.keys(headerMap).forEach(canon => { item[canon] = item[headerMap[canon]]; });
 
         if(String(item.ativo).trim() !== '1') continue;
 
-        const idSetor = (item.id_setor || item.nome_setor || ('setor_' + i)).trim();
-        const placaOferta = (item.placa_oferta || '').trim();
-        const chave = idSetor + '::' + (placaOferta || ('linha' + i));
-
-        if(!grupos[chave]){
-          grupos[chave] = {
-            chave, id_setor: idSetor, nome_setor: item.nome_setor || idSetor,
-            placa: placaOferta, placas_setor: item.placas_setor || '',
-            x: null, y: null, nodeId: null, corredor: '', ofertas: []
-          };
+        const chave = (item.id_setor || item.nome_setor || ('setor_' + i)).trim();
+        if(!gruposAtivos[chave]){
+          gruposAtivos[chave] = { id_setor: chave, nome_setor: item.nome_setor || chave, caixa: null, ofertas: [] };
         }
-        grupos[chave].ofertas.push(item);
+        const grupo = gruposAtivos[chave];
+        grupo.ofertas.push(item);
 
-        if(grupos[chave].x === null){
-          const px = parseFloat(item.x), py = parseFloat(item.y);
-          if(!isNaN(px) && !isNaN(py)){
-            // x/y explícitos na planilha (modelo antigo) têm prioridade
-            grupos[chave].x = px; grupos[chave].y = py;
-          } else if(placaOferta){
-            const no = encontrarNoDaPlaca(idSetor, placaOferta);
-            if(no){ grupos[chave].x = no.x; grupos[chave].y = no.y; grupos[chave].nodeId = no.id; }
-            else placasNaoEncontradas.push(`${idSetor} · placa ${placaOferta}`);
+        if(!grupo.caixa){
+          const xmin = parseFloat(item.xmin), xmax = parseFloat(item.xmax);
+          const ymin = parseFloat(item.ymin), ymax = parseFloat(item.ymax);
+          if(![xmin,xmax,ymin,ymax].some(isNaN)){
+            grupo.caixa = { xmin, xmax, ymin, ymax };
           }
-          const valCorredor = item.corredor;
-          if(valCorredor && valCorredor.trim() !== '') grupos[chave].corredor = valCorredor.trim();
         }
       }
 
-      Object.keys(grupos).forEach(k => { if(grupos[k].x === null) delete grupos[k]; });
-      if(placasNaoEncontradas.length){
-        console.warn('Placas sem nó correspondente na aba Corredores (pino não desenhado):', placasNaoEncontradas);
-      }
+      // resolve a posição de cada oferta (própria, ou auto-distribuída na área da seção)
+      ofertasComPosicao = [];
+      Object.values(gruposAtivos).forEach(grupo => {
+        const semPosicao = [];
+        grupo.ofertas.forEach(oferta => {
+          const px = parseFloat(oferta.x), py = parseFloat(oferta.y);
+          if(!isNaN(px) && !isNaN(py)){
+            oferta.__idx = ofertasComPosicao.length;
+            ofertasComPosicao.push({ oferta, grupo, x: px, y: py });
+          } else {
+            semPosicao.push(oferta);
+          }
+        });
+        if(semPosicao.length){
+          if(grupo.caixa){
+            const pontos = distribuirNaCaixa(grupo.caixa, semPosicao.length);
+            semPosicao.forEach((oferta, i) => {
+              oferta.__idx = ofertasComPosicao.length;
+              ofertasComPosicao.push({ oferta, grupo, x: pontos[i].x, y: pontos[i].y });
+            });
+          } else {
+            console.warn(`Setor "${grupo.nome_setor}" sem x/y e sem xmin/xmax/ymin/ymax — ${semPosicao.length} oferta(s) não exibida(s) no mapa.`);
+          }
+        }
+      });
 
-      const totalGrupos = Object.keys(grupos).length;
-      if(totalGrupos === 0){ mostrarEstado('empty'); return; }
+      if(ofertasComPosicao.length === 0){ mostrarEstado('empty'); return; }
 
       desenharPinos();
       montarChips();
@@ -654,79 +464,44 @@
     }
   }
 
-  async function carregarCorredores(){
-    if(!CORREDOR_GID) return;
-    try{
-      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${CORREDOR_GID}`;
-      const resp = await fetch(url, { cache: 'no-store' });
-      if(!resp.ok) return;
-      const text = await resp.text();
-      const lines = text.split('\n').filter(l => l.trim() !== '');
-      if(lines.length < 2) return;
-
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const nodes = [], edges = [];
-      for(let i = 1; i < lines.length; i++){
-        const values = lines[i].split(',');
-        const row = {};
-        headers.forEach((h, idx) => { row[h] = values[idx] ? values[idx].trim().replace(/^"|"$/g, '') : ''; });
-        if(row.tipo === 'no' && row.id){
-          const x = parseFloat(row.x), y = parseFloat(row.y);
-          if(!isNaN(x) && !isNaN(y)) nodes.push({
-            id: row.id, x, y,
-            corredor: (row.corredor||row.corredores||'').trim(),
-            setor: (row.setor||'').trim(),
-            placa: (row.placa||'').trim()
-          });
-        } else if(row.tipo === 'aresta' && row.de && row.para){
-          edges.push([row.de, row.para]);
-        }
-      }
-      if(nodes.length){ CORREDOR_NODES = nodes; CORREDOR_EDGES = edges; nodeSeq = CORREDOR_NODES.length; }
-    }catch(e){
-      console.warn('Corredores não carregados — usando linha reta como caminho.', e);
-    }
-  }
-
   function desenharPinos(){
     ofertasLayer.clearLayers();
-    markersPorSetor = {};
-    Object.values(grupos).forEach(grupo => {
-      const icon = criarIconeSetor(grupo.ofertas.length);
-      const marker = L.marker([grupo.y, grupo.x], { icon }).addTo(ofertasLayer);
-      marker.on('click', () => { if(!adminMode) abrirDetalhe(grupo.chave, 0); });
-      markersPorSetor[grupo.chave] = marker;
+    ofertasComPosicao.forEach((entry, idx) => {
+      const marker = L.marker([entry.y, entry.x], { icon: criarIconePin() }).addTo(ofertasLayer);
+      marker.on('click', () => abrirDetalhe(idx));
     });
+  }
+
+  function centroGrupo(grupo){
+    if(grupo.caixa) return { x:(grupo.caixa.xmin+grupo.caixa.xmax)/2, y:(grupo.caixa.ymin+grupo.caixa.ymax)/2 };
+    const pontos = ofertasComPosicao.filter(e => e.grupo === grupo);
+    if(!pontos.length) return null;
+    const x = pontos.reduce((s,e)=>s+e.x,0)/pontos.length;
+    const y = pontos.reduce((s,e)=>s+e.y,0)/pontos.length;
+    return { x, y };
   }
 
   function montarChips(){
     const wrap = el('chips');
     wrap.innerHTML = '';
-    // se o mesmo setor tiver mais de uma placa/pino, mostra o número da
-    // placa no chip pra diferenciar; senão só o nome do setor
-    const porSetor = {};
-    Object.values(grupos).forEach(g => { (porSetor[g.nome_setor] = porSetor[g.nome_setor]||[]).push(g); });
-
-    Object.values(grupos)
-      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR') || String(a.placa).localeCompare(String(b.placa),'pt-BR'))
+    Object.values(gruposAtivos)
+      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
       .forEach(grupo => {
+        const centro = centroGrupo(grupo);
+        if(!centro) return;
         const chip = document.createElement('button');
         chip.className = 'chip';
-        const rotulo = porSetor[grupo.nome_setor].length > 1 && grupo.placa
-          ? `${grupo.nome_setor} · ${grupo.placa}`
-          : grupo.nome_setor;
-        chip.innerHTML = `${rotulo}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
+        chip.innerHTML = `${grupo.nome_setor}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
         chip.addEventListener('click', () => {
-          map.flyTo([grupo.y, grupo.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
-          abrirDetalhe(grupo.chave, 0);
+          map.flyTo([centro.y, centro.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
         });
         wrap.appendChild(chip);
       });
   }
 
   function montarStatus(){
-    const totalOfertas = Object.values(grupos).reduce((s,g) => s + g.ofertas.length, 0);
-    const totalSetores = Object.keys(grupos).length;
+    const totalOfertas = ofertasComPosicao.length;
+    const totalSetores = Object.keys(gruposAtivos).length;
     el('status-text').textContent = `${totalOfertas} oferta${totalOfertas !== 1 ? 's' : ''} · ${totalSetores} setor${totalSetores !== 1 ? 'es' : ''}`;
   }
 
@@ -744,235 +519,40 @@
       el('state-text').textContent = 'Não foi possível carregar as ofertas agora.';
     }
   }
-  el('state-retry').addEventListener('click', iniciarCarga);
+  el('state-retry').addEventListener('click', carregarOfertas);
 
   /* =========================================================================
-     "MEU LOCAL" — o cliente marca de onde está partindo
+     SHEET — DETALHE DE UMA OFERTA
   ========================================================================= */
-  function atualizarLabelMeuLocal(){
-    el('fab-meulocal-label').textContent = meuLocal ? 'Meu local ✓' : 'Marcar meu local';
-  }
-  atualizarLabelMeuLocal();
+  function abrirDetalhe(idx){
+    const entry = ofertasComPosicao[idx];
+    if(!entry) return;
+    const { oferta, grupo } = entry;
 
-  function colocarMeuLocalMarker(){
-    if(meuLocalMarker) map.removeLayer(meuLocalMarker);
-    meuLocalMarker = L.marker([meuLocal.y, meuLocal.x], {
-      icon: L.divIcon({
-        className: '',
-        html: '<div class="me-pin-wrap"><div class="me-pin-ring"></div><div class="me-pin"></div></div>',
-        iconSize: [34, 34], iconAnchor: [17, 17]
-      }),
-      draggable: true, zIndexOffset: 1000
-    }).addTo(map);
-    meuLocalMarker.on('dragend', () => {
-      const ll = meuLocalMarker.getLatLng();
-      meuLocal = { x: Math.round(ll.lng), y: Math.round(ll.lat) };
-      try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(e){}
-    });
-  }
-  if(meuLocal) colocarMeuLocalMarker();
+    const desconto = (oferta.preco_de && oferta.preco_por)
+      ? Math.round(100 - (parseFloat(oferta.preco_por.replace(',','.')) / parseFloat(oferta.preco_de.replace(',','.'))) * 100)
+      : null;
+    const corredor = (oferta.corredor || '').trim();
 
-  function ativarModoMeuLocal(){
-    settingMeuLocal = true;
-    el('fab-meulocal').classList.add('on');
-    toast('Toque no mapa para marcar onde você está');
-  }
-  function desativarModoMeuLocal(){
-    settingMeuLocal = false;
-    el('fab-meulocal').classList.remove('on');
-  }
-  el('fab-meulocal').addEventListener('click', () => {
-    if(settingMeuLocal){ desativarModoMeuLocal(); return; }
-    ativarModoMeuLocal();
-  });
-
-  /* =========================================================================
-     CÁLCULO DE CAMINHO (grafo de corredores + linha reta como fallback)
-  ========================================================================= */
-  function buildAdjacency(){
-    const adj = {};
-    CORREDOR_NODES.forEach(n => adj[n.id] = []);
-    CORREDOR_EDGES.forEach(([a,b]) => {
-      const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
-      if(!na || !nb) return;
-      const d = Math.hypot(na.x-nb.x, na.y-nb.y);
-      (adj[a] = adj[a]||[]).push({to:b, w:d});
-      (adj[b] = adj[b]||[]).push({to:a, w:d});
-    });
-    return adj;
-  }
-
-  function nearestNode(x, y, corredor){
-    if(!CORREDOR_NODES.length) return null;
-    // Se a oferta informa um corredor, prioriza nós da malha marcados com
-    // o MESMO corredor — assim a rota entra na seção pela porta certa em
-    // vez de pelo nó geometricamente mais perto (que pode ser de outra
-    // seção e obrigar o traçado a cortar por cima dela).
-    if(corredor){
-      const alvo = corredor.trim().toLowerCase();
-      const doCorredor = CORREDOR_NODES.filter(n => (n.corredor||'').toLowerCase() === alvo);
-      if(doCorredor.length){
-        let best=null, bestD=Infinity;
-        doCorredor.forEach(n=>{ const d=Math.hypot(n.x-x,n.y-y); if(d<bestD){bestD=d;best=n;} });
-        return best;
-      }
-    }
-    let best=null, bestD=Infinity;
-    CORREDOR_NODES.forEach(n=>{ const d=Math.hypot(n.x-x,n.y-y); if(d<bestD){bestD=d;best=n;} });
-    return best;
-  }
-
-  function dijkstra(startId, endId){
-    const adj = buildAdjacency();
-    const dist = {}, prev = {};
-    CORREDOR_NODES.forEach(n=>dist[n.id]=Infinity);
-    dist[startId]=0;
-    const pendentes = new Set(CORREDOR_NODES.map(n=>n.id));
-    while(pendentes.size){
-      let u=null, best=Infinity;
-      pendentes.forEach(id=>{ if(dist[id]<best){ best=dist[id]; u=id; } });
-      if(u===null) break;
-      pendentes.delete(u);
-      if(u===endId) break;
-      (adj[u]||[]).forEach(edge=>{
-        const alt = dist[u]+edge.w;
-        if(alt<dist[edge.to]){ dist[edge.to]=alt; prev[edge.to]=u; }
-      });
-    }
-    if(!(endId in dist) || dist[endId]===Infinity) return null;
-    const path=[endId];
-    let cur=endId;
-    while(cur!==startId){
-      cur = prev[cur];
-      if(cur===undefined) return null;
-      path.unshift(cur);
-    }
-    return path.map(id=>CORREDOR_NODES.find(n=>n.id===id));
-  }
-
-  function calcularCaminho(origem, destino){
-    if(!CORREDOR_NODES.length) return [origem, destino];
-    const nOrig = nearestNode(origem.x, origem.y);
-    const nDest = destino.nodeId
-      ? CORREDOR_NODES.find(n => n.id === destino.nodeId)
-      : nearestNode(destino.x, destino.y, destino.corredor);
-    if(!nOrig || !nDest) return [origem, destino];
-    const path = dijkstra(nOrig.id, nDest.id);
-    if(!path) return [origem, destino];
-    return [origem, ...path, destino];
-  }
-
-  function desenharCaminho(pontos){
-    rotaLayer.clearLayers();
-    if(!pontos || pontos.length < 2){ el('route-clear').classList.remove('show'); return; }
-    const latlngs = pontos.map(p => [p.y, p.x]);
-    L.polyline(latlngs, { color:'#1E8A3C', weight:5, dashArray:'2, 10', lineCap:'round' }).addTo(rotaLayer);
-    L.circleMarker(latlngs[latlngs.length-1], { radius:6, color:'#fff', weight:2, fillColor:'#FF6B00', fillOpacity:1 }).addTo(rotaLayer);
-    map.fitBounds(L.polyline(latlngs).getBounds(), { padding:[60,60] });
-    el('route-clear').classList.add('show');
-  }
-
-  // compatibilidade com rota manual (string "x,y;x,y" vinda da planilha)
-  function desenharRota(strRota){
-    if(!strRota){ desenharCaminho(null); return; }
-    try{
-      const pontos = strRota.split(';').filter(p=>p.trim()!=='').map(p => {
-        const [x,y] = p.split(',').map(Number);
-        return { x, y };
-      });
-      desenharCaminho(pontos);
-    }catch(e){ console.error('Erro ao desenhar rota:', e); }
-  }
-  el('route-clear').addEventListener('click', () => desenharCaminho(null));
-
-  function tracarCaminhoPara(destino){
-    if(meuLocal){
-      const pontos = calcularCaminho(meuLocal, destino);
-      desenharCaminho(pontos);
-      closeSheets();
-      toast(CORREDOR_NODES.length ? 'Caminho traçado no mapa' : 'Caminho traçado (linha direta)');
-    } else {
-      pendingDestino = destino;
-      closeSheets();
-      ativarModoMeuLocal();
-    }
-  }
-
-  /* =========================================================================
-     SHEET — DETALHE DA OFERTA (carrossel)
-  ========================================================================= */
-  function abrirDetalhe(chaveGrupo, indice){
-    const grupo = grupos[chaveGrupo];
-    if(!grupo) return;
-
-    const carousel = el('carousel');
-    const dots = el('dots');
-    carousel.innerHTML = '';
-    dots.innerHTML = '';
-
-    grupo.ofertas.forEach((oferta) => {
-      const desconto = (oferta.preco_de && oferta.preco_por)
-        ? Math.round(100 - (parseFloat(oferta.preco_por.replace(',','.')) / parseFloat(oferta.preco_de.replace(',','.'))) * 100)
-        : null;
-
-      const temRotaManual = !!(oferta.rota && oferta.rota.trim() !== '');
-      const labelBotao = temRotaManual || meuLocal ? 'Ver caminho até aqui' : 'Marcar meu local e ver caminho';
-
-      const card = document.createElement('div');
-      card.className = 'offer-card';
-      card.innerHTML = `
-        <div class="setor-label">${grupo.nome_setor}</div>
-        <span class="tag">${oferta.titulo_campanha || 'Oferta especial'}</span>
-        ${oferta.foto_url ? `<img class="photo" src="${oferta.foto_url}" alt="">` : ''}
-        <h3>${oferta.produto_destaque || ''}</h3>
-        <div class="price-row">
-          ${desconto !== null ? `<span class="price-off">-${desconto}%</span>` : ''}
-          <div>
-            ${oferta.preco_de ? `<div class="price-was">De R$ ${formatPreco(oferta.preco_de)}</div>` : ''}
-            <div class="price-now">R$ ${formatPreco(oferta.preco_por)}</div>
-          </div>
+    el('detail-card').innerHTML = `
+      <div class="setor-label">${grupo.nome_setor}</div>
+      <span class="tag">${oferta.titulo_campanha || 'Oferta especial'}</span>
+      ${oferta.foto_url ? `<img class="photo" src="${oferta.foto_url}" alt="">` : ''}
+      <h3>${oferta.produto_destaque || ''}</h3>
+      <div class="price-row">
+        ${desconto !== null ? `<span class="price-off">-${desconto}%</span>` : ''}
+        <div>
+          ${oferta.preco_de ? `<div class="price-was">De R$ ${formatPreco(oferta.preco_de)}</div>` : ''}
+          <div class="price-now">R$ ${formatPreco(oferta.preco_por)}</div>
         </div>
-        <button class="btn-route">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="2"/></svg>
-          ${labelBotao}
-        </button>
-      `;
-      card.querySelector('.btn-route').addEventListener('click', () => {
-        if(temRotaManual){
-          desenharRota(oferta.rota);
-          closeSheets();
-          toast('Caminho traçado no mapa');
-          return;
-        }
-        tracarCaminhoPara({ x: grupo.x, y: grupo.y, corredor: grupo.corredor || '', nodeId: grupo.nodeId || null });
-      });
-      carousel.appendChild(card);
-
-      const d = document.createElement('span');
-      dots.appendChild(d);
-    });
-
-    dots.style.display = grupo.ofertas.length <= 1 ? 'none' : 'flex';
-
+      </div>
+      ${corredor ? `
+        <div class="corredor-info">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="2"/></svg>
+          <span>Você pode encontrar no <b>corredor ${corredor}</b></span>
+        </div>` : ''}
+    `;
     openSheet(sheetDetail);
-
-    requestAnimationFrame(() => {
-      const cardWidth = carousel.clientWidth;
-      carousel.scrollLeft = cardWidth * indice;
-      atualizarDots();
-    });
-  }
-
-  el('carousel').addEventListener('scroll', () => {
-    clearTimeout(el('carousel')._tm);
-    el('carousel')._tm = setTimeout(atualizarDots, 60);
-  });
-  function atualizarDots(){
-    const carousel = el('carousel');
-    const dots = el('dots').children;
-    if(!dots.length) return;
-    const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
-    [...dots].forEach((d,i) => d.classList.toggle('active', i === idx));
   }
 
   /* =========================================================================
@@ -981,7 +561,7 @@
   el('fab-list').addEventListener('click', () => {
     const inner = el('list-inner');
     inner.innerHTML = '';
-    Object.values(grupos)
+    Object.values(gruposAtivos)
       .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
       .forEach(grupo => {
         const title = document.createElement('div');
@@ -989,20 +569,24 @@
         title.textContent = grupo.nome_setor;
         inner.appendChild(title);
 
-        grupo.ofertas.forEach((oferta, i) => {
+        grupo.ofertas.forEach((oferta) => {
           const row = document.createElement('div');
           row.className = 'list-row';
+          const corredor = (oferta.corredor || '').trim();
           row.innerHTML = `
             <img src="${oferta.foto_url || ''}" alt="">
             <div class="info">
               <b>${oferta.produto_destaque || ''}</b>
               <div class="lp">R$ ${formatPreco(oferta.preco_por)}</div>
+              ${corredor ? `<div class="cr">Corredor ${corredor}</div>` : ''}
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.35;flex-shrink:0;"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           `;
           row.addEventListener('click', () => {
-            map.flyTo([grupo.y, grupo.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
-            abrirDetalhe(grupo.chave, i);
+            if(oferta.__idx === undefined){ toast('Localização não configurada para esta oferta'); return; }
+            const entry = ofertasComPosicao[oferta.__idx];
+            map.flyTo([entry.y, entry.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
+            abrirDetalhe(oferta.__idx);
           });
           inner.appendChild(row);
         });
@@ -1011,140 +595,9 @@
   });
 
   /* =========================================================================
-     EDITOR DE CORREDORES (equipe) — construir a malha de caminhos 1 vez
-  ========================================================================= */
-  function novoNodeId(){ nodeSeq++; return 'n' + nodeSeq; }
-
-  function renderCorridorGraph(){
-    adminLayer.clearLayers();
-    CORREDOR_NODES.forEach(n => {
-      const marker = L.marker([n.y, n.x], {
-        icon: L.divIcon({
-          className: '',
-          html: `<div class="node-pt${n.id===selectedNodeId ? ' selected':''}" title="${n.setor ? (n.setor+' · placa '+n.placa) : (n.corredor||'')}">${n.id.replace('n','')}${n.setor ? '*' : ''}</div>`,
-          iconSize:[22,22], iconAnchor:[11,11]
-        })
-      }).addTo(adminLayer);
-      marker.on('click', (ev) => {
-        L.DomEvent.stopPropagation(ev);
-        if(!adminMode || adminSubMode !== 'aresta') return;
-        if(!selectedNodeId){ selectedNodeId = n.id; renderCorridorGraph(); return; }
-        if(selectedNodeId === n.id){ selectedNodeId = null; renderCorridorGraph(); return; }
-        CORREDOR_EDGES.push([selectedNodeId, n.id]);
-        selectedNodeId = null;
-        renderCorridorGraph();
-        atualizarPainelCorredores();
-      });
-    });
-    CORREDOR_EDGES.forEach(([a,b]) => {
-      const na = CORREDOR_NODES.find(n=>n.id===a), nb = CORREDOR_NODES.find(n=>n.id===b);
-      if(na && nb) L.polyline([[na.y,na.x],[nb.y,nb.x]], { color:'#16211A', weight:3, dashArray:'2,8' }).addTo(adminLayer);
-    });
-  }
-
-  function atualizarPainelCorredores(){
-    el('ap-count').textContent = `${CORREDOR_NODES.length} nós · ${CORREDOR_EDGES.length} conexões`;
-  }
-
-  function atualizarModoBotoes(){
-    el('ap-mode-no').classList.toggle('active', adminSubMode==='no');
-    el('ap-mode-aresta').classList.toggle('active', adminSubMode==='aresta');
-    el('ap-hint').textContent = adminSubMode==='no'
-      ? 'Toque no mapa para marcar um ponto do corredor.'
-      : 'Toque em 2 pontos, em sequência, para ligá-los.';
-  }
-
-  el('btn-admin').addEventListener('click', () => {
-    adminMode = !adminMode;
-    el('btn-admin').classList.toggle('on', adminMode);
-    el('admin-panel').classList.toggle('show', adminMode);
-    closeSheets();
-    selectedNodeId = null;
-    if(adminMode){
-      renderCorridorGraph();
-      atualizarPainelCorredores();
-      atualizarModoBotoes();
-    } else {
-      adminLayer.clearLayers();
-    }
-  });
-
-  el('ap-mode-no').addEventListener('click', () => { adminSubMode='no'; selectedNodeId=null; atualizarModoBotoes(); renderCorridorGraph(); });
-  el('ap-mode-aresta').addEventListener('click', () => { adminSubMode='aresta'; atualizarModoBotoes(); });
-
-  el('ap-undo').addEventListener('click', () => {
-    if(adminSubMode==='no'){
-      const removido = CORREDOR_NODES.pop();
-      if(removido) CORREDOR_EDGES = CORREDOR_EDGES.filter(([a,b]) => a!==removido.id && b!==removido.id);
-    } else {
-      CORREDOR_EDGES.pop();
-    }
-    renderCorridorGraph();
-    atualizarPainelCorredores();
-  });
-  el('ap-clear').addEventListener('click', () => {
-    CORREDOR_NODES = []; CORREDOR_EDGES = []; selectedNodeId = null;
-    renderCorridorGraph();
-    atualizarPainelCorredores();
-    el('ap-string').classList.remove('show');
-  });
-  el('ap-copy').addEventListener('click', async () => {
-    if(!CORREDOR_NODES.length){ toast('Marque ao menos 2 nós primeiro'); return; }
-    const linhas = ['tipo,id,x,y,de,para,setor,placa'];
-    CORREDOR_NODES.forEach(n => linhas.push(`no,${n.id},${n.x},${n.y},,,${n.setor||''},${n.placa||''}`));
-    CORREDOR_EDGES.forEach(([a,b]) => linhas.push(`aresta,,,,${a},${b},,`));
-    const texto = linhas.join('\n');
-    el('ap-string').textContent = texto;
-    el('ap-string').classList.add('show');
-    try{
-      await navigator.clipboard.writeText(texto);
-      toast('Copiado! Cole numa aba "Corredores" da planilha');
-    }catch(e){
-      toast('Selecione e copie o texto abaixo manualmente');
-    }
-  });
-  el('ap-done').addEventListener('click', () => el('btn-admin').click());
-
-  /* =========================================================================
-     CLIQUE NO MAPA — roteia para o modo ativo (editor / marcar local)
-  ========================================================================= */
-  map.on('click', e => {
-    if(adminMode){
-      if(adminSubMode==='no'){
-        const setor = (prompt('Este nó é uma placa de oferta? Se sim, id_setor (deixe em branco se for só um ponto de passagem do corredor):') || '').trim();
-        const placa = setor ? (prompt(`Número da placa dentro do setor "${setor}":`) || '').trim() : '';
-        CORREDOR_NODES.push({ id: novoNodeId(), x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat), setor, placa });
-        renderCorridorGraph();
-        atualizarPainelCorredores();
-      }
-      return;
-    }
-    if(settingMeuLocal){
-      meuLocal = { x: Math.round(e.latlng.lng), y: Math.round(e.latlng.lat) };
-      colocarMeuLocalMarker();
-      desativarModoMeuLocal();
-      atualizarLabelMeuLocal();
-      try{ localStorage.setItem('lm_meu_local', JSON.stringify(meuLocal)); }catch(err){}
-
-      if(pendingDestino){
-        const pontos = calcularCaminho(meuLocal, pendingDestino);
-        desenharCaminho(pontos);
-        pendingDestino = null;
-        toast('Caminho traçado no mapa');
-      } else {
-        toast('Local marcado! Escolha uma oferta para ver o caminho');
-      }
-    }
-  });
-
-  /* =========================================================================
      INÍCIO
   ========================================================================= */
-  async function iniciarCarga(){
-    await carregarCorredores();
-    await carregarOfertas();
-  }
-  iniciarCarga();
+  carregarOfertas();
   </script>
 </body>
 </html>
