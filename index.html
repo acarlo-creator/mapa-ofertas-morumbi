@@ -61,8 +61,8 @@
   .status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
 
   #secoes-panel {
-    position: absolute; left: 14px; top: calc(110px + var(--safe-t)); z-index: 950;
-    width: 140px; max-height: calc(100vh - 140px); overflow-y: auto;
+    position: absolute; left: 14px; top: calc(100px + var(--safe-t)); z-index: 950;
+    width: 140px; max-height: calc(100vh - 120px); overflow-y: auto;
     background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
     border-radius: 14px; padding: 10px 8px; box-shadow: var(--shadow-lg);
     border: 1px solid rgba(22,33,26,0.12); display: flex; flex-direction: column; gap: 5px;
@@ -223,26 +223,138 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // PONTO DE PARTIDA FIXO: CIRCULO "VOCÊ ESTÁ AQUI" NA BASE DA PLANTA
-  const ENTRADA_LOJA_Y = 120;
-  const ENTRADA_LOJA_X = 415;
+  // PONTO DE PARTIDA FIXO NA ENTRADA (CÍRCULO VERDE)
+  const ENTRADA = "N_ENTRADA";
+
+  /* =========================================================================
+     GRAFO DE NÓS EXCLUSIVOS DOS CORREDORES CINZAS (PATHFINDING REAL)
+  ========================================================================= */
+  const NOS_CORREDORES = {
+    "N_ENTRADA": { x: 415, y: 120 },
+    "N_CAIXAS":   { x: 415, y: 200 },
+    "N_AV_ESQ":   { x: 350, y: 200 },
+    "N_AV_CENT":  { x: 490, y: 200 },
+    "N_AV_DIR":   { x: 720, y: 200 },
+    
+    // Interseções Nível Meio
+    "N_MID_ESQ":  { x: 350, y: 380 },
+    "N_MID_CENT": { x: 490, y: 380 },
+    "N_MID_DIR":  { x: 720, y: 380 },
+
+    // Interseções Nível Superior
+    "N_TOP_ESQ":  { x: 350, y: 630 },
+    "N_TOP_CENT": { x: 490, y: 630 },
+    "N_TOP_DIR":  { x: 720, y: 630 },
+
+    // Acessos às Seções
+    "SEC_ILUMINACAO":  { x: 260, y: 220, noPai: "N_AV_ESQ" },
+    "SEC_ORGANIZACAO": { x: 440, y: 310, noPai: "N_MID_CENT" },
+    "SEC_DECORACAO":   { x: 260, y: 380, noPai: "N_MID_ESQ" },
+    "SEC_JARDIM":      { x: 550, y: 310, noPai: "N_MID_CENT" },
+    "SEC_FERRAMENTAS": { x: 650, y: 310, noPai: "N_MID_DIR" },
+    "SEC_ELETRICA":    { x: 800, y: 310, noPai: "N_MID_DIR" },
+    "SEC_COZINHAS":    { x: 440, y: 530, noPai: "N_TOP_CENT" },
+    "SEC_TINTAS":      { x: 620, y: 530, noPai: "N_TOP_CENT" },
+    "SEC_FERRAGENS":   { x: 790, y: 530, noPai: "N_TOP_DIR" },
+    "SEC_PISOS":       { x: 250, y: 600, noPai: "N_TOP_ESQ" },
+    "SEC_BANHEIROS":   { x: 520, y: 720, noPai: "N_TOP_CENT" },
+    "SEC_MADEIRAS":    { x: 800, y: 720, noPai: "N_TOP_DIR" },
+    "SEC_RETIRADA":    { x: 250, y: 800, noPai: "N_TOP_ESQ" },
+    "SEC_MATERIAIS":   { x: 620, y: 840, noPai: "N_TOP_DIR" }
+  };
+
+  // LIGAÇÕES PERMITIDAS SOMENTE PELOS CORREDORES CINZAS
+  const CONEXOES = {
+    "N_ENTRADA": ["N_CAIXAS"],
+    "N_CAIXAS": ["N_ENTRADA", "N_AV_ESQ", "N_AV_CENT"],
+    "N_AV_ESQ": ["N_CAIXAS", "N_MID_ESQ", "SEC_ILUMINACAO"],
+    "N_AV_CENT": ["N_CAIXAS", "N_AV_DIR", "N_MID_CENT"],
+    "N_AV_DIR": ["N_AV_CENT", "N_MID_DIR"],
+
+    "N_MID_ESQ": ["N_AV_ESQ", "N_MID_CENT", "N_TOP_ESQ", "SEC_DECORACAO"],
+    "N_MID_CENT": ["N_AV_CENT", "N_MID_ESQ", "N_MID_DIR", "N_TOP_CENT", "SEC_ORGANIZACAO", "SEC_JARDIM"],
+    "N_MID_DIR": ["N_AV_DIR", "N_MID_CENT", "N_TOP_DIR", "SEC_FERRAMENTAS", "SEC_ELETRICA"],
+
+    "N_TOP_ESQ": ["N_MID_ESQ", "N_TOP_CENT", "SEC_PISOS", "SEC_RETIRADA"],
+    "N_TOP_CENT": ["N_MID_CENT", "N_TOP_ESQ", "N_TOP_DIR", "SEC_COZINHAS", "SEC_TINTAS", "SEC_BANHEIROS"],
+    "N_TOP_DIR": ["N_MID_DIR", "N_TOP_CENT", "SEC_FERRAGENS", "SEC_MADEIRAS", "SEC_MATERIAIS"],
+
+    "SEC_ILUMINACAO": ["N_AV_ESQ"],
+    "SEC_ORGANIZACAO": ["N_MID_CENT"],
+    "SEC_DECORACAO": ["N_MID_ESQ"],
+    "SEC_JARDIM": ["N_MID_CENT"],
+    "SEC_FERRAMENTAS": ["N_MID_DIR"],
+    "SEC_ELETRICA": ["N_MID_DIR"],
+    "SEC_COZINHAS": ["N_TOP_CENT"],
+    "SEC_TINTAS": ["N_TOP_CENT"],
+    "SEC_FERRAGENS": ["N_TOP_DIR"],
+    "SEC_PISOS": ["N_TOP_ESQ"],
+    "SEC_BANHEIROS": ["N_TOP_CENT"],
+    "SEC_MADEIRAS": ["N_TOP_DIR"],
+    "SEC_RETIRADA": ["N_TOP_ESQ"],
+    "SEC_MATERIAIS": ["N_TOP_DIR"]
+  };
 
   const SECOES_OFICIAIS = {
-    "iluminacao":  { nome: "Iluminação", x: 260, y: 220 },
-    "organizacao": { nome: "Organização", x: 440, y: 310 },
-    "decoracao":   { nome: "Decoração", x: 260, y: 380 },
-    "jardim":      { nome: "Jardim", x: 550, y: 310 },
-    "ferramentas": { nome: "Ferramentas", x: 650, y: 310 },
-    "eletrica":    { nome: "Materiais Elétricos", x: 800, y: 310 },
-    "cozinhas":    { nome: "Cozinhas", x: 440, y: 530 },
-    "tintas":      { nome: "Tintas", x: 620, y: 530 },
-    "ferragens":   { nome: "Ferragens", x: 790, y: 530 },
-    "pisos":       { nome: "Pisos e Revestimentos", x: 250, y: 600 },
-    "banheiros":   { nome: "Banheiros", x: 520, y: 720 },
-    "madeiras":    { nome: "Madeiras", x: 800, y: 720 },
-    "retirada":    { nome: "Retirada", x: 250, y: 800 },
-    "materiais":   { nome: "Materiais de Construção", x: 620, y: 840 }
+    "iluminacao":  { nome: "Iluminação", key: "SEC_ILUMINACAO" },
+    "organizacao": { nome: "Organização", key: "SEC_ORGANIZACAO" },
+    "decoracao":   { nome: "Decoração", key: "SEC_DECORACAO" },
+    "jardim":      { nome: "Jardim", key: "SEC_JARDIM" },
+    "ferramentas": { nome: "Ferramentas", key: "SEC_FERRAMENTAS" },
+    "eletrica":    { nome: "Materiais Elétricos", key: "SEC_ELETRICA" },
+    "cozinhas":    { nome: "Cozinhas", key: "SEC_COZINHAS" },
+    "tintas":      { nome: "Tintas", key: "SEC_TINTAS" },
+    "ferragens":   { nome: "Ferragens", key: "SEC_FERRAGENS" },
+    "pisos":       { nome: "Pisos e Revestimentos", key: "SEC_PISOS" },
+    "banheiros":   { nome: "Banheiros", key: "SEC_BANHEIROS" },
+    "madeiras":    { nome: "Madeiras", key: "SEC_MADEIRAS" },
+    "retirada":    { nome: "Retirada", key: "SEC_RETIRADA" },
+    "materiais":   { nome: "Materiais de Construção", key: "SEC_MATERIAIS" }
   };
+
+  /* ALGORITMO DIJKSTRA DE MENOR CAMINHO SOBRE OS CORREDORES */
+  function dijkstra(inicio, destinoKey) {
+    const distancias = {};
+    const anteriores = {};
+    const pq = [];
+
+    Object.keys(NOS_CORREDORES).forEach(no => {
+      distancias[no] = Infinity;
+      anteriores[no] = null;
+    });
+
+    distancias[inicio] = 0;
+    pq.push({ no: inicio, dist: 0 });
+
+    while (pq.length > 0) {
+      pq.sort((a, b) => a.dist - b.dist);
+      const { no: atual } = pq.shift();
+
+      if (atual === destinoKey) break;
+
+      const vizinhos = CONEXOES[atual] || [];
+      vizinhos.forEach(vizinho => {
+        const p1 = NOS_CORREDORES[atual];
+        const p2 = NOS_CORREDORES[vizinho];
+        const peso = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        const alt = distancias[atual] + peso;
+
+        if (alt < distancias[vizinho]) {
+          distancias[vizinho] = alt;
+          anteriores[vizinho] = atual;
+          pq.push({ no: vizinho, dist: alt });
+        }
+      });
+    }
+
+    const caminho = [];
+    let curr = destinoKey;
+    while (curr) {
+      caminho.unshift(curr);
+      curr = anteriores[curr];
+    }
+    return caminho;
+  }
 
   const bounds = [[0, 0], [1000, 1000]];
   const map = L.map('map', {
@@ -264,12 +376,13 @@
   let marcadorSetaAmarela = null;
 
   // Marcador Ponto Verde na Entrada
+  const pEntrada = NOS_CORREDORES[ENTRADA];
   const clienteIcon = L.divIcon({
     className: 'cliente-verde-pin',
     iconSize: [20, 20],
     iconAnchor: [10, 10]
   });
-  L.marker([ENTRADA_LOJA_Y, ENTRADA_LOJA_X], { icon: clienteIcon }).addTo(map);
+  L.marker([pEntrada.y, pEntrada.x], { icon: clienteIcon }).addTo(map);
 
   function fecharTelasSubsolo() {
     document.getElementById('backdrop').classList.remove('show');
@@ -281,71 +394,13 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* CÁLCULO DE NAVEGAÇÃO ESTRITAMENTE PELAS RUAS CINZAS DA PLANTA */
-  function desenharRotaCorredores(destX, destY, isSecao = false) {
+  /* NAVEGAÇÃO 100% GARANTIDA PELOS CORREDORES */
+  function desenharRotaParaNo(destinoKey, isSecao = false) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
     if (marcadorSetaAmarela) map.removeLayer(marcadorSetaAmarela);
 
-    // COORDENADAS EXATAS DOS CORREDORES CINZAS DA PLANTA MORUMBI
-    const CORREDOR_CAIXAS_Y = 200;      // Rua horizontal acima dos Caixas
-    const CORREDOR_ESQUERDO_X = 350;    // Avenida principal vertical esquerda
-    const CORREDOR_CENTRAL_X = 490;     // Corredor central cinza
-    const CORREDOR_DIREITO_X = 720;     // Corredor vertical direito
-    const RUA_SUPERIOR_Y = 630;         // Corredor horizontal acima de Cozinhas/Tintas (Abaixo de Banheiros)
-
-    let pontos = [];
-
-    // Percurso que passa OBRIGATORIAMENTE pelas vias cinzas sem cortar salas
-    if (destY > 480) {
-      // Destinos na parte superior (Cozinhas, Tintas, Banheiros, Retirada, Madeiras)
-      if (destX > 650) {
-        pontos = [
-          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
-          [RUA_SUPERIOR_Y, CORREDOR_CENTRAL_X],
-          [RUA_SUPERIOR_Y, CORREDOR_DIREITO_X],
-          [destY, CORREDOR_DIREITO_X],
-          [destY, destX]
-        ];
-      } else if (destX > 400) {
-        pontos = [
-          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
-          [RUA_SUPERIOR_Y, CORREDOR_CENTRAL_X],
-          [RUA_SUPERIOR_Y, destX],
-          [destY, destX]
-        ];
-      } else {
-        pontos = [
-          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
-          [destY, CORREDOR_ESQUERDO_X],
-          [destY, destX]
-        ];
-      }
-    } else {
-      // Destinos na parte inferior/média (Iluminação, Decoração, Organização, Jardim, Ferramentas)
-      if (destX > 500) {
-        pontos = [
-          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
-          [destY, CORREDOR_CENTRAL_X],
-          [destY, destX]
-        ];
-      } else {
-        pontos = [
-          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-          [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
-          [destY, CORREDOR_ESQUERDO_X],
-          [destY, destX]
-        ];
-      }
-    }
+    const listaNos = dijkstra(ENTRADA, destinoKey);
+    const pontos = listaNos.map(k => [NOS_CORREDORES[k].y, NOS_CORREDORES[k].x]);
 
     linhaRotaAtual = L.polyline(pontos, {
       color: '#0073e6',
@@ -356,13 +411,14 @@
     }).addTo(map);
 
     if (isSecao) {
+      const pDest = NOS_CORREDORES[destinoKey];
       const setaIcon = L.divIcon({
         className: 'seta-amarela-pin',
         html: '➔',
         iconSize: [24, 24],
         iconAnchor: [12, 12]
       });
-      marcadorSetaAmarela = L.marker([destY, destX], { icon: setaIcon }).addTo(map);
+      marcadorSetaAmarela = L.marker([pDest.y, pDest.x], { icon: setaIcon }).addTo(map);
     }
 
     map.fitBounds(linhaRotaAtual.getBounds(), { padding: [60, 60] });
@@ -392,7 +448,7 @@
         btn.onclick = (e) => {
           e.stopPropagation();
           fecharTelasSubsolo();
-          desenharRotaCorredores(sec.x, sec.y, true);
+          desenharRotaParaNo(sec.key, true);
         };
         panel.appendChild(btn);
       });
@@ -432,15 +488,12 @@
       ofertasComPosicao = [];
       Object.values(gruposAtivos).forEach(grupo => {
         grupo.ofertas.forEach(oferta => {
-          const px = parseFloat(oferta.x);
-          const py = parseFloat(oferta.y);
-
           const setorSec = SECOES_OFICIAIS[grupo.id_setor.toLowerCase()];
-          const finalX = !isNaN(px) ? px : (setorSec ? setorSec.x : 480);
-          const finalY = !isNaN(py) ? py : (setorSec ? setorSec.y : 500);
+          const noKey = setorSec ? setorSec.key : "SEC_COZINHAS";
+          const pos = NOS_CORREDORES[noKey];
 
           oferta.__idx = ofertasComPosicao.length;
-          ofertasComPosicao.push({ oferta, grupo, x: finalX, y: finalY });
+          ofertasComPosicao.push({ oferta, grupo, x: pos.x, y: pos.y, noKey });
         });
       });
 
@@ -466,7 +519,7 @@
   function abrirDetalhe(idx){
     const entry = ofertasComPosicao[idx];
     if(!entry) return;
-    const { oferta, grupo, x, y } = entry;
+    const { oferta, grupo, noKey } = entry;
 
     document.getElementById('detail-card').innerHTML = `
       <div class="setor-label">${grupo.nome_setor}</div>
@@ -480,7 +533,7 @@
     `;
 
     document.getElementById('btn-rota-card').onclick = () => {
-      desenharRotaCorredores(x, y, false);
+      desenharRotaParaNo(noKey, false);
       fecharTelasSubsolo();
     };
 
