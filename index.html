@@ -46,7 +46,7 @@
   /* TOP BAR */
   #topbar{
     position:absolute; top:0; left:0; right:0; z-index:800;
-    padding:calc(12px + var(--safe-t)) 16px 20px 160px;
+    padding:calc(12px + var(--safe-t)) 16px 20px 170px;
     background:linear-gradient(180deg, rgba(10,20,13,0.85) 0%, rgba(10,20,13,0.4) 70%, rgba(10,20,13,0) 100%);
     pointer-events:none;
   }
@@ -62,10 +62,10 @@
   }
   .status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
 
-  /* PAINEL DE SEÇÕES FIXO (LADO ESQUERDO) */
+  /* PAINEL DE SEÇÕES - POSICIONADO MAIS PARA BAIXO (5) */
   #secoes-panel {
-    position: absolute; left: 14px; top: calc(14px + var(--safe-t)); z-index: 950;
-    width: 140px; max-height: calc(100vh - 30px); overflow-y: auto;
+    position: absolute; left: 14px; top: calc(100px + var(--safe-t)); z-index: 950;
+    width: 140px; max-height: calc(100vh - 120px); overflow-y: auto;
     background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
     border-radius: 14px; padding: 10px 8px; box-shadow: var(--shadow-lg);
     border: 1px solid rgba(22,33,26,0.12); display: flex; flex-direction: column; gap: 5px;
@@ -83,7 +83,7 @@
     background: var(--lm-green-soft); color: var(--lm-green-deep); border-color: var(--lm-green);
   }
 
-  /* PONTO DE ENTRADA DO CLIENTE (CIRCULAR VERDE NO RODAPÉ) */
+  /* PONTO ENTRADA CLIENTE (1) */
   .cliente-verde-pin {
     width: 20px; height: 20px; background: #00e65c; border-radius: 50%;
     border: 3.5px solid #ffffff; box-shadow: 0 0 14px #00e65c;
@@ -93,6 +93,19 @@
     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 230, 92, 0.8); }
     70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(0, 230, 92, 0); }
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 230, 92, 0); }
+  }
+
+  /* SETA AMARELA DE DESTINO DA SEÇÃO (3) */
+  .seta-amarela-pin {
+    width: 24px; height: 24px; background: #ffcc00; border-radius: 50%;
+    border: 3px solid #ffffff; box-shadow: 0 0 16px #ffcc00;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900; color: #000;
+    animation: amareloGlow 1.2s infinite alternate;
+  }
+  @keyframes amareloGlow {
+    from { transform: scale(0.9); box-shadow: 0 0 8px #ffcc00; }
+    to { transform: scale(1.15); box-shadow: 0 0 20px #ffcc00; }
   }
 
   /* PIN OFERTAS */
@@ -133,7 +146,17 @@
   #detail-card .tag{ display:inline-flex; align-items:center; gap:5px; background:var(--lm-green-soft); color:var(--lm-green-deep); font-size:11px; font-weight:700; padding:5px 10px; border-radius:7px; margin-bottom:10px; }
   #detail-card .setor-label{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:2px; }
   #detail-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
-  #detail-card .photo{ width:100%; height:150px; border-radius:14px; object-fit:cover; background:var(--paper-warm); border:1px solid var(--line); margin-bottom:12px; }
+  
+  /* ESCALA DE IMAGEM CORRIGIDA (4) */
+  #detail-card .photo-container {
+    width: 100%; height: 160px; max-height: 160px; border-radius: 14px;
+    background: #f8faf8; border: 1px solid var(--line); margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 6px;
+  }
+  #detail-card .photo {
+    max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;
+  }
+
   .price-now{ color:var(--lm-green-deep); font-size:25px; font-weight:800; margin-bottom:10px; }
   
   .btn-traçar-caminho {
@@ -146,7 +169,7 @@
   .list-group-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-soft); padding:14px 12px 6px; }
   .list-row{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; cursor:pointer; }
   .list-row:active{ background:var(--paper-warm); }
-  .list-row img{ width:52px; height:52px; border-radius:10px; object-fit:cover; background:var(--paper-warm); flex-shrink:0; }
+  .list-row img{ width:52px; height:52px; border-radius:10px; object-fit:contain; background:var(--paper-warm); flex-shrink:0; padding:2px; border:1px solid var(--line); }
   .list-row .info{ flex:1; min-width:0; }
   .list-row .info b{ display:block; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .list-row .info .lp{ font-size:12.5px; color:var(--lm-green-deep); font-weight:700; margin-top:2px; }
@@ -173,7 +196,7 @@
     </div>
   </div>
 
-  <!-- PAINEL FIXO DE SEÇÕES (LADO ESQUERDO) -->
+  <!-- PAINEL FIXO DE SEÇÕES (REBAIXADO) -->
   <div id="secoes-panel">
     <div class="panel-title">Seções</div>
   </div>
@@ -210,24 +233,24 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // COORDENADA EXATA DA SETA DA ENTRADA DA LOJA (NO RODAPÉ DA IMAGEM)
-  const ENTRADA_LOJA = [430, 140];
+  // COORDENADA EXATA DO CÍRCULO "VOCÊ ESTÁ AQUI" NA BASE DO MAPA
+  const ENTRADA_LOJA = [415, 115];
 
   const SECOES_OFICIAIS = {
-    "iluminacao":  { nome: "Iluminação", x: 420, y: 240 },
-    "organizacao": { nome: "Organização", x: 550, y: 320 },
-    "decoracao":   { nome: "Decoração", x: 420, y: 380 },
-    "jardim":      { nome: "Jardim", x: 660, y: 320 },
-    "ferramentas": { nome: "Ferramentas", x: 760, y: 320 },
-    "eletrica":    { nome: "Materiais Elétricos", x: 800, y: 320 },
-    "cozinhas":    { nome: "Cozinhas", x: 550, y: 440 },
-    "tintas":      { nome: "Tintas", x: 660, y: 440 },
-    "ferragens":   { nome: "Ferragens", x: 790, y: 440 },
-    "pisos":       { nome: "Pisos e Revestimentos", x: 420, y: 520 },
-    "banheiros":   { nome: "Banheiros", x: 600, y: 580 },
-    "madeiras":    { nome: "Madeiras", x: 800, y: 580 },
-    "retirada":    { nome: "Retirada", x: 420, y: 650 },
-    "materiais":   { nome: "Materiais de Construção", x: 620, y: 750 }
+    "iluminacao":  { nome: "Iluminação", x: 260, y: 220 },
+    "organizacao": { nome: "Organização", x: 440, y: 310 },
+    "decoracao":   { nome: "Decoração", x: 260, y: 380 },
+    "jardim":      { nome: "Jardim", x: 550, y: 310 },
+    "ferramentas": { nome: "Ferramentas", x: 650, y: 310 },
+    "eletrica":    { nome: "Materiais Elétricos", x: 800, y: 310 },
+    "cozinhas":    { nome: "Cozinhas", x: 440, y: 530 },
+    "tintas":      { nome: "Tintas", x: 620, y: 530 },
+    "ferragens":   { nome: "Ferragens", x: 790, y: 530 },
+    "pisos":       { nome: "Pisos e Revestimentos", x: 250, y: 600 },
+    "banheiros":   { nome: "Banheiros", x: 520, y: 720 },
+    "madeiras":    { nome: "Madeiras", x: 800, y: 720 },
+    "retirada":    { nome: "Retirada", x: 250, y: 800 },
+    "materiais":   { nome: "Materiais de Construção", x: 620, y: 840 }
   };
 
   const bounds = [[0, 0], [1000, 1000]];
@@ -247,8 +270,9 @@
 
   const ofertasLayer = L.layerGroup().addTo(map);
   let linhaRotaAtual = null;
+  let marcadorSetaAmarela = null;
 
-  // Marcador Entrada Cliente (Círculo Verde sobre a Seta)
+  // Ícone Cliente
   const clienteIcon = L.divIcon({
     className: 'cliente-verde-pin',
     iconSize: [20, 20],
@@ -266,23 +290,25 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* DESENHO DA ROTA DESDE A ENTRADA */
-  function desenharRotaCorredores(destX, destY) {
+  /* DESENHO DE ROTA AZUL CONTÍNUA PELOS CORREDORES DA LOJA (2) */
+  function desenharRotaCorredores(destX, destY, isSecao = false) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
+    if (marcadorSetaAmarela) map.removeLayer(marcadorSetaAmarela);
 
     const CORREDOR_ENTRADA_X = 480;
-    const CORREDOR_DIREITO_X = 730;
+    const CORREDOR_DIREITO_X = 720;
 
     let yTransversal = 280;
-    if (destY > 400 && destY <= 600) yTransversal = 520;
-    if (destY > 600) yTransversal = 680;
+    if (destY > 400 && destY <= 650) yTransversal = 480;
+    if (destY > 650) yTransversal = 680;
 
     let pontos = [];
 
-    if (destX > 620) {
+    if (destX > 600) {
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [ENTRADA_LOJA[1], CORREDOR_ENTRADA_X],
+        [200, ENTRADA_LOJA[0]],
+        [200, CORREDOR_ENTRADA_X],
         [yTransversal, CORREDOR_ENTRADA_X],
         [yTransversal, CORREDOR_DIREITO_X],
         [destY, CORREDOR_DIREITO_X],
@@ -291,18 +317,32 @@
     } else {
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [ENTRADA_LOJA[1], CORREDOR_ENTRADA_X],
+        [200, ENTRADA_LOJA[0]],
+        [200, CORREDOR_ENTRADA_X],
         [destY, CORREDOR_ENTRADA_X],
         [destY, destX]
       ];
     }
 
+    // Linha azul contínua
     linhaRotaAtual = L.polyline(pontos, {
-      color: '#0F5C2E',
-      weight: 5,
-      dashArray: '8, 8',
-      lineCap: 'round'
+      color: '#0073e6',
+      weight: 6,
+      opacity: 0.9,
+      lineCap: 'round',
+      lineJoin: 'round'
     }).addTo(map);
+
+    // Se for uma seleção de seção na lateral, adiciona a seta amarela de destino (3)
+    if (isSecao) {
+      const setaIcon = L.divIcon({
+        className: 'seta-amarela-pin',
+        html: '➔',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+      marcadorSetaAmarela = L.marker([destY, destX], { icon: setaIcon }).addTo(map);
+    }
 
     map.fitBounds(linhaRotaAtual.getBounds(), { padding: [60, 60] });
   }
@@ -331,7 +371,7 @@
         btn.onclick = (e) => {
           e.stopPropagation();
           fecharTelasSubsolo();
-          desenharRotaCorredores(sec.x, sec.y);
+          desenharRotaCorredores(sec.x, sec.y, true);
         };
         panel.appendChild(btn);
       });
@@ -397,7 +437,6 @@
       const marker = L.marker([entry.y, entry.x], { icon: criarIconePin() }).addTo(ofertasLayer);
       marker.on('click', (e) => {
         L.DomEvent.stopPropagation(e);
-        // APENAS ABRE O CARD SEM DESENHAR ROTA AUTOMÁTICA
         abrirDetalhe(idx);
       });
     });
@@ -411,7 +450,7 @@
     document.getElementById('detail-card').innerHTML = `
       <div class="setor-label">${grupo.nome_setor}</div>
       <span class="tag">${oferta.titulo_campanha || 'Oferta Especial'}</span>
-      ${oferta.foto_url ? `<img class="photo" src="${oferta.foto_url}" alt="">` : ''}
+      ${oferta.foto_url ? `<div class="photo-container"><img class="photo" src="${oferta.foto_url}" alt=""></div>` : ''}
       <h3>${oferta.produto_destaque || ''}</h3>
       <div class="price-now">R$ ${oferta.preco_por}</div>
       <button class="btn-traçar-caminho" id="btn-rota-card">
@@ -419,9 +458,8 @@
       </button>
     `;
 
-    // A ROTA SÓ É DESENHADA QUANDO O CLIENTE CLICA NO BOTÃO DO CARD
     document.getElementById('btn-rota-card').onclick = () => {
-      desenharRotaCorredores(x, y);
+      desenharRotaCorredores(x, y, false);
       fecharTelasSubsolo();
     };
 
