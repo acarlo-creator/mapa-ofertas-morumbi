@@ -223,10 +223,10 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // PONTO DE PARTIDA FIXO NO CÍRCULO DA ENTRADA DA PLANTA
-  const ORIGEM = [140, 415]; // [Y, X] no Leaflet
+  // PONTO DE PARTIDA FIXO NO CÍRCULO DA ENTRADA DA PLANTA [Y, X]
+  const ORIGEM = [140, 415];
 
-  // COORDENADAS FIXAS DAS SEÇÕES DA LOJA
+  // COORDENADAS CENTRAIS FIXAS DAS SEÇÕES DA PLANTA MORUMBI
   const SECOES_OFICIAIS = {
     "iluminacao":  { nome: "Iluminação", x: 260, y: 220 },
     "organizacao": { nome: "Organização", x: 440, y: 310 },
@@ -244,44 +244,23 @@
     "materiais":   { nome: "Materiais de Construção", x: 620, y: 840 }
   };
 
-  /* ROTAS FIXAS Mapeadas ESTRITAMENTE PELOS CORREDORES CINZAS DA PLANTA MORUMBI */
+  /* ROTAS RIGOROSAMENTE MAPEADAS PELOS CORREDORES CINZAS */
   const ROTAS_FIXAS = {
     "tintas": [
       ORIGEM,
       [200, 415], // Sobe a entrada até a rua dos Caixas
-      [200, 490], // Vai até a Avenida Central
-      [630, 490], // SOBE A AVENIDA CENTRAL ATÉ ACIMA DE COZINHAS (Sem cortar salas)
-      [630, 620], // Dobra à direita na rua cinza acima de Tintas
-      [530, 620]  // Chega em Tintas pelo corredor
+      [200, 490], // Entra na Avenida Central
+      [480, 490], // SOBE A AVENIDA CENTRAL ATÉ O CORREDOR ENTRE COZINHAS/TINTAS
+      [480, 620], // Dobra 90° à direita na rua cinza
+      [530, 620]  // Chega em Tintas
     ],
     "cozinhas": [
       ORIGEM,
       [200, 415],
       [200, 490],
-      [630, 490],
-      [630, 440],
+      [480, 490],
+      [480, 440],
       [530, 440]
-    ],
-    "iluminacao": [
-      ORIGEM,
-      [200, 415],
-      [200, 350],
-      [220, 350],
-      [220, 260]
-    ],
-    "decoracao": [
-      ORIGEM,
-      [200, 415],
-      [200, 350],
-      [380, 350],
-      [380, 260]
-    ],
-    "organizacao": [
-      ORIGEM,
-      [200, 415],
-      [200, 490],
-      [310, 490],
-      [310, 440]
     ],
     "jardim": [
       ORIGEM,
@@ -297,6 +276,27 @@
       [200, 720],
       [310, 720],
       [310, 650]
+    ],
+    "organizacao": [
+      ORIGEM,
+      [200, 415],
+      [200, 490],
+      [310, 490],
+      [310, 440]
+    ],
+    "decoracao": [
+      ORIGEM,
+      [200, 415],
+      [200, 350],
+      [380, 350],
+      [380, 260]
+    ],
+    "iluminacao": [
+      ORIGEM,
+      [200, 415],
+      [200, 350],
+      [220, 350],
+      [220, 260]
     ],
     "eletrica": [
       ORIGEM,
@@ -325,7 +325,8 @@
       ORIGEM,
       [200, 415],
       [200, 490],
-      [720, 490],
+      [630, 490],
+      [630, 520],
       [720, 520]
     ],
     "madeiras": [
@@ -348,8 +349,7 @@
       [200, 415],
       [200, 490],
       [630, 490],
-      [630, 720],
-      [840, 720],
+      [630, 620],
       [840, 620]
     ]
   };
@@ -391,7 +391,7 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* DESENHA A ROTA USANDO A TABELA DE ROTAS FIXAS */
+  /* DESENHA A ROTA USANDO AS COORDENADAS DOS CORREDORES */
   function desenharRotaSetor(setorKey, isSecao = false) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
     if (marcadorSetaAmarela) map.removeLayer(marcadorSetaAmarela);
@@ -400,7 +400,6 @@
     const rota = ROTAS_FIXAS[chave] || ROTAS_FIXAS["tintas"];
     const destino = SECOES_OFICIAIS[chave] || SECOES_OFICIAIS["tintas"];
 
-    // Linha azul contínua estritamente sobre os corredores
     linhaRotaAtual = L.polyline(rota, {
       color: '#0073e6',
       weight: 6,
