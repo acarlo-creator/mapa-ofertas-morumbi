@@ -61,8 +61,8 @@
   .status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
 
   #secoes-panel {
-    position: absolute; left: 14px; top: calc(100px + var(--safe-t)); z-index: 950;
-    width: 140px; max-height: calc(100vh - 120px); overflow-y: auto;
+    position: absolute; left: 14px; top: calc(110px + var(--safe-t)); z-index: 950;
+    width: 140px; max-height: calc(100vh - 140px); overflow-y: auto;
     background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
     border-radius: 14px; padding: 10px 8px; box-shadow: var(--shadow-lg);
     border: 1px solid rgba(22,33,26,0.12); display: flex; flex-direction: column; gap: 5px;
@@ -140,9 +140,9 @@
   #detail-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
   
   #detail-card .photo-container {
-    width: 100%; height: 160px; max-height: 160px; border-radius: 14px;
+    width: 100%; height: 150px; max-height: 150px; border-radius: 14px;
     background: #f8faf8; border: 1px solid var(--line); margin-bottom: 12px;
-    display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 6px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 8px;
   }
   #detail-card .photo {
     max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;
@@ -223,9 +223,11 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // PONTO DE PARTIDA FIXO EXATO: CÍRCULO "VOCÊ ESTÁ AQUI" NA BASE DO MAPA
-  const ENTRADA_LOJA = [470, 140];
+  // PONTO DE ORIGEM EXATO: CIRCULO "VOCÊ ESTÁ AQUI" NA BASE DO MAPA [Y, X]
+  const ENTRADA_LOJA_Y = 120;
+  const ENTRADA_LOJA_X = 415;
 
+  // COORDENADAS CENTRAIS CALIBRADAS DE CADA SEÇÃO DA PLANTA MORUMBI [Y, X]
   const SECOES_OFICIAIS = {
     "iluminacao":  { nome: "Iluminação", x: 260, y: 220 },
     "organizacao": { nome: "Organização", x: 440, y: 310 },
@@ -262,13 +264,13 @@
   let linhaRotaAtual = null;
   let marcadorSetaAmarela = null;
 
-  // Marcador Ponto Verde na Entrada Físico da Planta
+  // Marcador Ponto Verde na Entrada
   const clienteIcon = L.divIcon({
     className: 'cliente-verde-pin',
     iconSize: [20, 20],
     iconAnchor: [10, 10]
   });
-  L.marker([ENTRADA_LOJA[1], ENTRADA_LOJA[0]], { icon: clienteIcon }).addTo(map);
+  L.marker([ENTRADA_LOJA_Y, ENTRADA_LOJA_X], { icon: clienteIcon }).addTo(map);
 
   function fecharTelasSubsolo() {
     document.getElementById('backdrop').classList.remove('show');
@@ -280,59 +282,55 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* NAVEGAÇÃO RIGOROSA PELAS LINHAS LARANJAS DOS CORREDORES */
+  /* CÁLCULO DE ROTAS RIGOROSAMENTE PELOS CORREDORES DA PLANTA */
   function desenharRotaCorredores(destX, destY, isSecao = false) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
     if (marcadorSetaAmarela) map.removeLayer(marcadorSetaAmarela);
 
-    // COORDENADAS EXATAS DOS CORREDORES CINZAS DA PLANTA
-    const CORREDOR_CAIXAS_Y = 200;      // Corredor horizontal acima da entrada
-    const CORREDOR_ESQUERDO_X = 425;    // Avenida vertical central/esquerda
-    const CORREDOR_CENTRAL_X = 530;     // Corredor entre Cozinhas/Jardim
-    const CORREDOR_DIREITO_X = 730;     // Corredor entre Tintas/Madeiras
+    // COORDENADAS DOS CORREDORES CINZAS DA PLANTA MORUMBI
+    const CORREDOR_CAIXAS_Y = 200;      // Rua horizontal acima dos Caixas
+    const CORREDOR_ESQUERDO_X = 350;    // Avenida principal vertical esquerda
+    const CORREDOR_CENTRAL_X = 490;     // Corredor central (Avenida de Cozinhas/Tintas)
+    const CORREDOR_DIREITO_X = 720;     // Corredor vertical entre Tintas e Madeiras
     
-    // Níveis de cruzamento horizontal
     let yTransversal = 380;
     if (destY > 450 && destY <= 650) yTransversal = 520;
     if (destY > 650) yTransversal = 680;
 
     let pontos = [];
 
-    // Estruturação do trajeto estritamente sobre as linhas dos corredores
-    if (destX > 680) {
-      // Destinos no lado direito (Ferramentas, Tintas, Madeiras, etc)
+    // Monta percurso em ângulos retos de 90° passando apenas pelos corredores cinzas
+    if (destX > 650) {
+      // Destinos na ala direita (Ferramentas, Tintas, Madeiras)
       pontos = [
-        [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA[0]],
-        [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
-        [yTransversal, CORREDOR_ESQUERDO_X],
+        [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+        [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
+        [yTransversal, CORREDOR_CENTRAL_X],
         [yTransversal, CORREDOR_DIREITO_X],
         [destY, CORREDOR_DIREITO_X],
         [destY, destX]
       ];
-    } else if (destX > 480) {
-      // Destinos no centro (Cozinhas, Organização, Jardim, Banheiros)
+    } else if (destX > 400) {
+      // Destinos na ala central (Cozinhas, Organização, Jardim, Banheiros)
       pontos = [
-        [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA[0]],
-        [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
-        [yTransversal, CORREDOR_ESQUERDO_X],
-        [yTransversal, CORREDOR_CENTRAL_X],
+        [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+        [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
         [destY, CORREDOR_CENTRAL_X],
         [destY, destX]
       ];
     } else {
-      // Destinos no lado esquerdo (Iluminação, Decoração, Pisos, Retirada)
+      // Destinos na ala esquerda (Iluminação, Decoração, Pisos, Retirada)
       pontos = [
-        [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA[0]],
+        [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
         [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
         [destY, CORREDOR_ESQUERDO_X],
         [destY, destX]
       ];
     }
 
-    // Rota desenhada com linha azul contínua destacada
     linhaRotaAtual = L.polyline(pontos, {
       color: '#0073e6',
       weight: 6,
