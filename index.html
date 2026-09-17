@@ -43,10 +43,10 @@
   #map{ position:absolute; inset:0; background:var(--map-bg); z-index:1; }
   .leaflet-container{ background:var(--map-bg); }
 
-  /* TOP BAR */
+  /* TOP BAR CORRIGIDA */
   #topbar{
     position:absolute; top:0; left:0; right:0; z-index:900;
-    padding:calc(12px + var(--safe-t)) 14px 20px;
+    padding:calc(12px + var(--safe-t)) 16px 20px 160px;
     background:linear-gradient(180deg, rgba(10,20,13,0.85) 0%, rgba(10,20,13,0.4) 70%, rgba(10,20,13,0) 100%);
     pointer-events:none;
   }
@@ -56,25 +56,25 @@
   .brand span{ font-family:'Inter',sans-serif; font-size:11px; font-weight:500; color:#CFEBD8; margin-top:3px; }
 
   .status-pill{
-    display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.14);
+    display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.2);
     backdrop-filter:blur(6px); color:#fff; font-size:11.5px; font-weight:600;
-    padding:6px 10px 6px 8px; border-radius:20px; pointer-events:auto; white-space:nowrap;
+    padding:6px 12px; border-radius:20px; pointer-events:auto; white-space:nowrap;
   }
-  .status-pill .dot{ width:7px; height:7px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
+  .status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
 
-  /* PAINEL LATERAL DE SEÇÕES (LADO ESQUERDO) */
+  /* PAINEL DE SEÇÕES FIXO (LADO ESQUERDO) */
   #secoes-panel {
-    position: absolute; left: 14px; top: calc(80px + var(--safe-t)); z-index: 850;
-    width: 140px; max-height: calc(100vh - 170px); overflow-y: auto;
-    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
-    border-radius: 14px; padding: 10px 8px; box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(22,33,26,0.12); display: flex; flex-direction: column; gap: 6px;
+    position: absolute; left: 14px; top: calc(14px + var(--safe-t)); z-index: 950;
+    width: 140px; max-height: calc(100vh - 30px); overflow-y: auto;
+    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+    border-radius: 14px; padding: 10px 8px; box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(22,33,26,0.12); display: flex; flex-direction: column; gap: 5px;
   }
   #secoes-panel::-webkit-scrollbar { display: none; }
-  #secoes-panel .panel-title { font-size: 10px; font-weight: 800; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 2px; padding-left: 4px; }
+  #secoes-panel .panel-title { font-size: 10px; font-weight: 800; color: var(--ink-soft); text-transform: uppercase; margin-bottom: 4px; padding-left: 4px; }
   .btn-secao-item {
     background: #fff; border: 1px solid var(--line); color: var(--ink);
-    font-size: 11px; font-weight: 700; padding: 8px; border-radius: 8px;
+    font-size: 11px; font-weight: 700; padding: 7px 8px; border-radius: 8px;
     text-align: left; cursor: pointer; transition: all 0.15s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
   }
@@ -82,10 +82,10 @@
     background: var(--lm-green-soft); color: var(--lm-green-deep); border-color: var(--lm-green);
   }
 
-  /* PONTO DO CLIENTE (VERDE CIRCULAR COM PULSO) */
+  /* PONTO ENTRADA DO CLIENTE (CIRCULAR VERDE) */
   .cliente-verde-pin {
-    width: 18px; height: 18px; background: #00e65c; border-radius: 50%;
-    border: 3px solid #ffffff; box-shadow: 0 0 12px #00e65c;
+    width: 20px; height: 20px; background: #00e65c; border-radius: 50%;
+    border: 3.5px solid #ffffff; box-shadow: 0 0 14px #00e65c;
     animation: verdePulse 1.6s infinite;
   }
   @keyframes verdePulse {
@@ -94,7 +94,7 @@
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 230, 92, 0); }
   }
 
-  /* MAP PIN OFERTAS */
+  /* PIN OFERTAS */
   .lm-pin-wrap{ position:relative; width:34px; height:46px; }
   .lm-pin{
     width:30px; height:30px; background:var(--lm-green); border:3px solid #fff;
@@ -133,10 +133,7 @@
   #detail-card .setor-label{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:2px; }
   #detail-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
   #detail-card .photo{ width:100%; height:150px; border-radius:14px; object-fit:cover; background:var(--paper-warm); border:1px solid var(--line); margin-bottom:12px; }
-  .price-row{ display:flex; align-items:flex-end; gap:10px; margin-bottom:12px; }
-  .price-was{ text-decoration:line-through; color:var(--ink-soft); font-size:13px; font-weight:500; }
-  .price-now{ color:var(--lm-green-deep); font-size:25px; font-weight:800; }
-  .price-off{ background:var(--lm-orange); color:#fff; font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px; margin-bottom:3px; }
+  .price-now{ color:var(--lm-green-deep); font-size:25px; font-weight:800; margin-bottom:10px; }
   
   .btn-traçar-caminho {
     margin-top: 12px; width: 100%; background: var(--lm-green-deep); color: #fff;
@@ -152,7 +149,6 @@
   .list-row .info{ flex:1; min-width:0; }
   .list-row .info b{ display:block; font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .list-row .info .lp{ font-size:12.5px; color:var(--lm-green-deep); font-weight:700; margin-top:2px; }
-  .list-row .info .cr{ font-size:11px; color:var(--ink-soft); margin-top:1px; }
 
   #state-overlay{ position:absolute; inset:0; z-index:700; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; background:var(--map-bg); text-align:center; padding:0 30px; }
   #state-overlay.hidden{ display:none; }
@@ -172,14 +168,13 @@
   <div id="topbar">
     <div class="row">
       <div class="brand"><b>LEROY MERLIN</b><span>Morumbi · Mapa de ofertas</span></div>
-      <div class="status-pill"><span class="dot"></span><span id="status-text">—</span></div>
+      <div class="status-pill"><span class="dot"></span><span id="status-text">Carregando...</span></div>
     </div>
   </div>
 
-  <!-- PAINEL DE SEÇÕES (LADO ESQUERDO) -->
+  <!-- PAINEL FIXO COM TODAS AS 14 SEÇÕES -->
   <div id="secoes-panel">
     <div class="panel-title">Seções</div>
-    <!-- Botões renderizados dinamicamente -->
   </div>
 
   <button id="fab-list">
@@ -207,16 +202,34 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <script>
   const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
   const GID = "2013806288";
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // PONTO DE PARTIDA DO CLIENTE (SETA DA ENTRADA DA LOJA)
-  const ENTRADA_LOJA = [480, 160]; 
+  // COORDENADA EXATA DA ENTRADA DA LOJA DA FOTO
+  const ENTRADA_LOJA = [480, 140];
 
-  // MAPA E BOUNDS
+  // TODAS AS 14 SEÇÕES OFICIAIS E SUAS COORDENADAS CENTRAIS
+  const SECOES_OFICIAIS = {
+    "iluminacao":  { nome: "Iluminação", x: 420, y: 240 },
+    "organizacao": { nome: "Organização", x: 550, y: 320 },
+    "decoracao":   { nome: "Decoração", x: 420, y: 380 },
+    "jardim":      { nome: "Jardim", x: 660, y: 320 },
+    "ferramentas": { nome: "Ferramentas", x: 760, y: 320 },
+    "eletrica":    { nome: "Materiais Elétricos", x: 800, y: 320 },
+    "cozinhas":    { nome: "Cozinhas", x: 550, y: 440 },
+    "tintas":      { nome: "Tintas", x: 660, y: 440 },
+    "ferragens":   { nome: "Ferragens", x: 790, y: 440 },
+    "pisos":       { nome: "Pisos e Revestimentos", x: 420, y: 520 },
+    "banheiros":   { nome: "Banheiros", x: 600, y: 580 },
+    "madeiras":    { nome: "Madeiras", x: 800, y: 580 },
+    "retirada":    { nome: "Retirada", x: 420, y: 650 },
+    "materiais":   { nome: "Materiais de Construção", x: 620, y: 750 }
+  };
+
   const bounds = [[0, 0], [1000, 1000]];
   const map = L.map('map', {
     crs: L.CRS.Simple,
@@ -228,42 +241,46 @@
     zoomControl: false,
     attributionControl: false
   });
+
   L.imageOverlay(IMAGEM_MAPA, bounds).addTo(map);
   map.fitBounds(bounds);
 
   const ofertasLayer = L.layerGroup().addTo(map);
   let linhaRotaAtual = null;
 
-  // Ícone Verde Circular de Identificação do Cliente
+  // Marcador Ponto Verde Circular na Entrada
   const clienteIcon = L.divIcon({
     className: 'cliente-verde-pin',
-    iconSize: [18, 18],
-    iconAnchor: [9, 9]
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
   });
   L.marker([ENTRADA_LOJA[1], ENTRADA_LOJA[0]], { icon: clienteIcon }).addTo(map);
 
-  /* CÁLCULO DE ROTAS RIGOROSAMENTE PELOS CORREDORES */
+  /* ROTAS APENAS PELOS CORREDORES DA LOJA (SEM CORTAR BLOCOS) */
   function desenharRotaCorredores(destX, destY) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
 
-    // Malha dos 3 Corredores Principais da Loja
-    const CORREDOR_ENTRADA_X = 480; 
-    const CORREDOR_DIREITO_X = 730; 
-    const CORREDOR_HORIZONTAL_Y = destY > 500 ? 680 : 380;
+    const CORREDOR_ENTRADA_X = 480;
+    const CORREDOR_DIREITO_X = 730;
+
+    // Define qual o corredor transversal utilizar (Y=280 para seções inferiores, Y=520/Y=680 para superiores)
+    let yTransversal = 280;
+    if (destY > 400 && destY <= 600) yTransversal = 520;
+    if (destY > 600) yTransversal = 680;
 
     let pontos = [];
 
-    if (destX > 600) {
-      // Rota usando Corredor Principal para Seções Direitas
+    if (destX > 620) {
+      // Percurso até o lado direito usando corredores
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [CORREDOR_HORIZONTAL_Y, CORREDOR_ENTRADA_X],
-        [CORREDOR_HORIZONTAL_Y, CORREDOR_DIREITO_X],
+        [yTransversal, CORREDOR_ENTRADA_X],
+        [yTransversal, CORREDOR_DIREITO_X],
         [destY, CORREDOR_DIREITO_X],
         [destY, destX]
       ];
     } else {
-      // Rota Exclusiva pelo Corredor Central/Esquerdo
+      // Percurso central/esquerdo usando a avenida de entrada
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
         [destY, CORREDOR_ENTRADA_X],
@@ -292,33 +309,25 @@
     });
   }
 
-  /* RENDERIZAÇÃO DO PAINEL LATERAL DE SEÇÕES */
-  function montarPainelSecoes(grupos) {
+  /* MONTA O PAINEL DE SEÇÕES COM TODAS AS SEÇÕES DA LOJA */
+  function montarPainelSecoes() {
     const panel = document.getElementById('secoes-panel');
     panel.innerHTML = '<div class="panel-title">Seções</div>';
 
-    Object.values(grupos)
-      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
-      .forEach(grupo => {
+    Object.values(SECOES_OFICIAIS)
+      .sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'))
+      .forEach(sec => {
         const btn = document.createElement('button');
         btn.className = 'btn-secao-item';
-        btn.textContent = grupo.nome_setor;
+        btn.textContent = sec.nome;
         btn.onclick = () => {
-          const centro = centroGrupo(grupo);
-          if (centro) desenharRotaCorredores(centro.x, centro.y);
+          desenharRotaCorredores(sec.x, sec.y);
         };
         panel.appendChild(btn);
       });
   }
 
-  function centroGrupo(grupo){
-    if(grupo.caixa) return { x:(grupo.caixa.xmin+grupo.caixa.xmax)/2, y:(grupo.caixa.ymin+grupo.caixa.ymax)/2 };
-    const pontos = ofertasComPosicao.filter(e => e.grupo === grupo);
-    if(!pontos.length) return null;
-    return { x: pontos[0].x, y: pontos[0].y };
-  }
-
-  /* CARREGAR DADOS */
+  /* CARREGAR OFERTAS DA PLANILHA */
   let ofertasComPosicao = [];
   let gruposAtivos = {};
 
@@ -345,7 +354,7 @@
 
         const chave = (item.id_setor || item.nome_setor || ('setor_' + i)).trim();
         if(!gruposAtivos[chave]){
-          gruposAtivos[chave] = { id_setor: chave, nome_setor: item.nome_setor || chave, caixa: null, ofertas: [] };
+          gruposAtivos[chave] = { id_setor: chave, nome_setor: item.nome_setor || chave, ofertas: [] };
         }
         gruposAtivos[chave].ofertas.push(item);
       }
@@ -353,16 +362,21 @@
       ofertasComPosicao = [];
       Object.values(gruposAtivos).forEach(grupo => {
         grupo.ofertas.forEach(oferta => {
-          const px = parseFloat(oferta.x), py = parseFloat(oferta.y);
-          if(!isNaN(px) && !isNaN(py)){
-            oferta.__idx = ofertasComPosicao.length;
-            ofertasComPosicao.push({ oferta, grupo, x: px, y: py });
-          }
+          const px = parseFloat(oferta.x);
+          const py = parseFloat(oferta.y);
+
+          // Se a oferta não tiver x/y próprio, usa as coordenadas da seção oficial
+          const setorSec = SECOES_OFICIAIS[grupo.id_setor.toLowerCase()];
+          const finalX = !isNaN(px) ? px : (setorSec ? setorSec.x : 480);
+          const finalY = !isNaN(py) ? py : (setorSec ? setorSec.y : 500);
+
+          oferta.__idx = ofertasComPosicao.length;
+          ofertasComPosicao.push({ oferta, grupo, x: finalX, y: finalY });
         });
       });
 
       desenharPinos();
-      montarPainelSecoes(gruposAtivos);
+      document.getElementById('status-text').textContent = `${ofertasComPosicao.length} oferta(s) ativas`;
       document.getElementById('state-overlay').classList.add('hidden');
     }catch(err){
       console.error(err);
@@ -391,7 +405,7 @@
       ${oferta.foto_url ? `<img class="photo" src="${oferta.foto_url}" alt="">` : ''}
       <h3>${oferta.produto_destaque || ''}</h3>
       <div class="price-now">R$ ${oferta.preco_por}</div>
-      <button class="btn-traçar-caminho" onclick="desenharRotaCorredores(${x}, ${y}); document.getElementById('sheet-detail').classList.remove('show');">
+      <button class="btn-traçar-caminho" onclick="desenharRotaCorredores(${x}, ${y}); document.getElementById('sheet-detail').classList.remove('show'); document.getElementById('backdrop').classList.remove('show');">
         🚶‍♂️ Ver Caminho do Corredor
       </button>
     `;
@@ -399,6 +413,51 @@
     document.getElementById('sheet-detail').classList.add('show');
   }
 
+  /* LISTA DE TODAS AS OFERTAS */
+  document.getElementById('fab-list').addEventListener('click', () => {
+    const inner = document.getElementById('list-inner');
+    inner.innerHTML = '';
+    Object.values(gruposAtivos)
+      .sort((a,b) => a.nome_setor.localeCompare(b.nome_setor,'pt-BR'))
+      .forEach(grupo => {
+        const title = document.createElement('div');
+        title.className = 'list-group-title';
+        title.textContent = grupo.nome_setor;
+        inner.appendChild(title);
+
+        grupo.ofertas.forEach((oferta) => {
+          const row = document.createElement('div');
+          row.className = 'list-row';
+          row.innerHTML = `
+            <img src="${oferta.foto_url || ''}" alt="">
+            <div class="info">
+              <b>${oferta.produto_destaque || ''}</b>
+              <div class="lp">R$ ${oferta.preco_por}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.35;flex-shrink:0;"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          `;
+          row.addEventListener('click', () => {
+            const entry = ofertasComPosicao[oferta.__idx];
+            if(entry) {
+              desenharRotaCorredores(entry.x, entry.y);
+              abrirDetalhe(oferta.__idx);
+              document.getElementById('sheet-list').classList.remove('show');
+            }
+          });
+          inner.appendChild(row);
+        });
+      });
+    document.getElementById('backdrop').classList.add('show');
+    document.getElementById('sheet-list').classList.add('show');
+  });
+
+  document.getElementById('backdrop').addEventListener('click', () => {
+    document.getElementById('backdrop').classList.remove('show');
+    document.getElementById('sheet-detail').classList.remove('show');
+    document.getElementById('sheet-list').classList.remove('show');
+  });
+
+  montarPainelSecoes();
   carregarOfertas();
   </script>
 </body>
