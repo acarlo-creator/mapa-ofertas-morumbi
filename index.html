@@ -223,11 +223,10 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // PONTO DE ORIGEM EXATO: CIRCULO "VOCÊ ESTÁ AQUI" NA BASE DO MAPA [Y, X]
+  // PONTO DE PARTIDA FIXO: CIRCULO "VOCÊ ESTÁ AQUI" NA BASE DA PLANTA
   const ENTRADA_LOJA_Y = 120;
   const ENTRADA_LOJA_X = 415;
 
-  // COORDENADAS CENTRAIS CALIBRADAS DE CADA SEÇÃO DA PLANTA MORUMBI [Y, X]
   const SECOES_OFICIAIS = {
     "iluminacao":  { nome: "Iluminação", x: 260, y: 220 },
     "organizacao": { nome: "Organização", x: 440, y: 310 },
@@ -282,53 +281,70 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* CÁLCULO DE ROTAS RIGOROSAMENTE PELOS CORREDORES DA PLANTA */
+  /* CÁLCULO DE NAVEGAÇÃO ESTRITAMENTE PELAS RUAS CINZAS DA PLANTA */
   function desenharRotaCorredores(destX, destY, isSecao = false) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
     if (marcadorSetaAmarela) map.removeLayer(marcadorSetaAmarela);
 
-    // COORDENADAS DOS CORREDORES CINZAS DA PLANTA MORUMBI
+    // COORDENADAS EXATAS DOS CORREDORES CINZAS DA PLANTA MORUMBI
     const CORREDOR_CAIXAS_Y = 200;      // Rua horizontal acima dos Caixas
     const CORREDOR_ESQUERDO_X = 350;    // Avenida principal vertical esquerda
-    const CORREDOR_CENTRAL_X = 490;     // Corredor central (Avenida de Cozinhas/Tintas)
-    const CORREDOR_DIREITO_X = 720;     // Corredor vertical entre Tintas e Madeiras
-    
-    let yTransversal = 380;
-    if (destY > 450 && destY <= 650) yTransversal = 520;
-    if (destY > 650) yTransversal = 680;
+    const CORREDOR_CENTRAL_X = 490;     // Corredor central cinza
+    const CORREDOR_DIREITO_X = 720;     // Corredor vertical direito
+    const RUA_SUPERIOR_Y = 630;         // Corredor horizontal acima de Cozinhas/Tintas (Abaixo de Banheiros)
 
     let pontos = [];
 
-    // Monta percurso em ângulos retos de 90° passando apenas pelos corredores cinzas
-    if (destX > 650) {
-      // Destinos na ala direita (Ferramentas, Tintas, Madeiras)
-      pontos = [
-        [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-        [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
-        [yTransversal, CORREDOR_CENTRAL_X],
-        [yTransversal, CORREDOR_DIREITO_X],
-        [destY, CORREDOR_DIREITO_X],
-        [destY, destX]
-      ];
-    } else if (destX > 400) {
-      // Destinos na ala central (Cozinhas, Organização, Jardim, Banheiros)
-      pontos = [
-        [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-        [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
-        [destY, CORREDOR_CENTRAL_X],
-        [destY, destX]
-      ];
+    // Percurso que passa OBRIGATORIAMENTE pelas vias cinzas sem cortar salas
+    if (destY > 480) {
+      // Destinos na parte superior (Cozinhas, Tintas, Banheiros, Retirada, Madeiras)
+      if (destX > 650) {
+        pontos = [
+          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
+          [RUA_SUPERIOR_Y, CORREDOR_CENTRAL_X],
+          [RUA_SUPERIOR_Y, CORREDOR_DIREITO_X],
+          [destY, CORREDOR_DIREITO_X],
+          [destY, destX]
+        ];
+      } else if (destX > 400) {
+        pontos = [
+          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
+          [RUA_SUPERIOR_Y, CORREDOR_CENTRAL_X],
+          [RUA_SUPERIOR_Y, destX],
+          [destY, destX]
+        ];
+      } else {
+        pontos = [
+          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
+          [destY, CORREDOR_ESQUERDO_X],
+          [destY, destX]
+        ];
+      }
     } else {
-      // Destinos na ala esquerda (Iluminação, Decoração, Pisos, Retirada)
-      pontos = [
-        [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
-        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
-        [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
-        [destY, CORREDOR_ESQUERDO_X],
-        [destY, destX]
-      ];
+      // Destinos na parte inferior/média (Iluminação, Decoração, Organização, Jardim, Ferramentas)
+      if (destX > 500) {
+        pontos = [
+          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, CORREDOR_CENTRAL_X],
+          [destY, CORREDOR_CENTRAL_X],
+          [destY, destX]
+        ];
+      } else {
+        pontos = [
+          [ENTRADA_LOJA_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, ENTRADA_LOJA_X],
+          [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
+          [destY, CORREDOR_ESQUERDO_X],
+          [destY, destX]
+        ];
+      }
     }
 
     linhaRotaAtual = L.polyline(pontos, {
