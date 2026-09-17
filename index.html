@@ -43,7 +43,7 @@
   #map{ position:absolute; inset:0; background:var(--map-bg); z-index:1; }
   .leaflet-container{ background:var(--map-bg); }
 
-  /* TOP BAR - POINTER EVENTS CORRIGIDOS */
+  /* TOP BAR */
   #topbar{
     position:absolute; top:0; left:0; right:0; z-index:800;
     padding:calc(12px + var(--safe-t)) 16px 20px 160px;
@@ -83,7 +83,7 @@
     background: var(--lm-green-soft); color: var(--lm-green-deep); border-color: var(--lm-green);
   }
 
-  /* PONTO ENTRADA DO CLIENTE (CIRCULAR VERDE) */
+  /* PONTO DE ENTRADA DO CLIENTE (CIRCULAR VERDE NO RODAPÉ) */
   .cliente-verde-pin {
     width: 20px; height: 20px; background: #00e65c; border-radius: 50%;
     border: 3.5px solid #ffffff; box-shadow: 0 0 14px #00e65c;
@@ -210,7 +210,8 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  const ENTRADA_LOJA = [480, 140];
+  // COORDENADA EXATA DA SETA DA ENTRADA DA LOJA (NO RODAPÉ DA IMAGEM)
+  const ENTRADA_LOJA = [430, 140];
 
   const SECOES_OFICIAIS = {
     "iluminacao":  { nome: "Iluminação", x: 420, y: 240 },
@@ -247,7 +248,7 @@
   const ofertasLayer = L.layerGroup().addTo(map);
   let linhaRotaAtual = null;
 
-  // Marcador Entrada Cliente
+  // Marcador Entrada Cliente (Círculo Verde sobre a Seta)
   const clienteIcon = L.divIcon({
     className: 'cliente-verde-pin',
     iconSize: [20, 20],
@@ -255,7 +256,6 @@
   });
   L.marker([ENTRADA_LOJA[1], ENTRADA_LOJA[0]], { icon: clienteIcon }).addTo(map);
 
-  /* GERENCIAMENTO DE SHEETS E NAVEGAÇÃO */
   function fecharTelasSubsolo() {
     document.getElementById('backdrop').classList.remove('show');
     document.getElementById('sheet-detail').classList.remove('show');
@@ -266,7 +266,7 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* DESENHO DE ROTAS PELOS CORREDORES */
+  /* DESENHO DA ROTA DESDE A ENTRADA */
   function desenharRotaCorredores(destX, destY) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
 
@@ -282,6 +282,7 @@
     if (destX > 620) {
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
+        [ENTRADA_LOJA[1], CORREDOR_ENTRADA_X],
         [yTransversal, CORREDOR_ENTRADA_X],
         [yTransversal, CORREDOR_DIREITO_X],
         [destY, CORREDOR_DIREITO_X],
@@ -290,6 +291,7 @@
     } else {
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
+        [ENTRADA_LOJA[1], CORREDOR_ENTRADA_X],
         [destY, CORREDOR_ENTRADA_X],
         [destY, destX]
       ];
@@ -316,7 +318,6 @@
     });
   }
 
-  /* MONTA O PAINEL DE SEÇÕES COM BOTÕES DE CLIQUE */
   function montarPainelSecoes() {
     const panel = document.getElementById('secoes-panel');
     panel.innerHTML = '<div class="panel-title">Seções</div>';
@@ -336,7 +337,6 @@
       });
   }
 
-  /* CARREGAR OFERTAS */
   let ofertasComPosicao = [];
   let gruposAtivos = {};
 
@@ -397,7 +397,7 @@
       const marker = L.marker([entry.y, entry.x], { icon: criarIconePin() }).addTo(ofertasLayer);
       marker.on('click', (e) => {
         L.DomEvent.stopPropagation(e);
-        desenharRotaCorredores(entry.x, entry.y);
+        // APENAS ABRE O CARD SEM DESENHAR ROTA AUTOMÁTICA
         abrirDetalhe(idx);
       });
     });
@@ -419,6 +419,7 @@
       </button>
     `;
 
+    // A ROTA SÓ É DESENHADA QUANDO O CLIENTE CLICA NO BOTÃO DO CARD
     document.getElementById('btn-rota-card').onclick = () => {
       desenharRotaCorredores(x, y);
       fecharTelasSubsolo();
@@ -428,7 +429,6 @@
     document.getElementById('sheet-detail').classList.add('show');
   }
 
-  /* BOTÃO FAB LISTA */
   document.getElementById('fab-list').onclick = (e) => {
     e.stopPropagation();
     const inner = document.getElementById('list-inner');
@@ -455,7 +455,6 @@
           row.onclick = () => {
             const entry = ofertasComPosicao[oferta.__idx];
             if(entry) {
-              desenharRotaCorredores(entry.x, entry.y);
               fecharTelasSubsolo();
               abrirDetalhe(oferta.__idx);
             }
