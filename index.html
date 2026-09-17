@@ -95,6 +95,18 @@
   @keyframes dropIn{ from{ transform:translateY(-14px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
   .lm-pin-wrap{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
 
+  /* Marcador da Entrada Fixo */
+  .entrada-pin {
+    width: 20px; height: 20px; background: #0F5C2E; border: 3px solid #FFFFFF;
+    border-radius: 50%; box-shadow: 0 0 12px rgba(15, 92, 46, 0.8);
+    animation: pulseEntrada 1.8s infinite;
+  }
+  @keyframes pulseEntrada {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(15, 92, 46, 0.6); }
+    70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(15, 92, 46, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(15, 92, 46, 0); }
+  }
+
   /* ---------- FAB ---------- */
   #fab-list{
     position:absolute; right:14px; bottom:calc(20px + var(--safe-b));
@@ -128,7 +140,7 @@
     border:none; background:var(--paper-warm); display:flex; align-items:center; justify-content:center; cursor:pointer;
   }
 
-  /* Offer detail sheet (uma oferta por vez) */
+  /* Detail Card */
   #detail-card{ overflow-y:auto; padding:6px 18px 18px; }
   #detail-card .tag{
     display:inline-flex; align-items:center; gap:5px; background:var(--lm-green-soft); color:var(--lm-green-deep);
@@ -150,6 +162,11 @@
   .corredor-info{
     display:flex; align-items:center; gap:8px; background:var(--lm-green-soft); color:var(--lm-green-deep);
     font-size:13.5px; font-weight:600; padding:11px 13px; border-radius:12px; margin-top:2px;
+  }
+  .btn-traçar-caminho {
+    margin-top: 12px; width: 100%; background: var(--lm-green-deep); color: #fff;
+    border: none; padding: 12px; border-radius: 12px; font-weight: 700; font-size: 13px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
   }
 
   /* All-offers list sheet */
@@ -219,7 +236,6 @@
 
   <div class="backdrop" id="backdrop"></div>
 
-  <!-- Sheet: detalhe de UMA oferta -->
   <div class="sheet" id="sheet-detail">
     <div class="sheet-handle" id="handle-detail"><span></span></div>
     <button class="sheet-close" id="close-detail">
@@ -228,7 +244,6 @@
     <div id="detail-card"></div>
   </div>
 
-  <!-- Sheet: lista completa -->
   <div class="sheet" id="sheet-list">
     <div class="sheet-handle" id="handle-list"><span></span></div>
     <button class="sheet-close" id="close-list">
@@ -242,44 +257,19 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-  /* =========================================================================
-     CONFIG
-  ========================================================================= */
+  /* CONFIGURAÇÃO */
   const SPREADSHEET_ID = "1RWr4CHQMpYEIuBJ69SDULHmwxI1-4As0BuWrQSbrSG8";
   const GID = "2013806288";
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  /* Colunas da planilha de ofertas:
-       id_setor, nome_setor, ativo, titulo_campanha, produto_destaque,
-       preco_de, preco_por, foto_url, corredor, x, y, xmin, xmax, ymin, ymax
+  // PONTO FIXO DE ENTRADA DA LOJA
+  const ENTRADA_LOJA = [470, 100]; 
+  const CORREDOR_PRINCIPAL_X = 490;
 
-     - "corredor": número/nome do corredor daquela oferta (ex: "185"). Aparece
-       na própria oferta como "Você pode encontrar no corredor 185".
-
-     - "x"/"y": posição exata do pino dessa oferta (opcional, por linha).
-
-     - "xmin,xmax,ymin,ymax": a ÁREA (retângulo) da seção inteira — os mesmos
-       números que você já mapeou na sua planilha de extensões. Só precisa
-       preencher UMA VEZ por seção (em qualquer linha daquele id_setor).
-       Com isso preenchido, toda oferta daquele setor que NÃO tiver x/y
-       próprio é posicionada automaticamente dentro dessa área, já espaçada
-       das outras — sem precisar calcular ponto por ponto na mão.
-
-     Prioridade por oferta: se a linha tiver x/y preenchido, usa esse ponto
-     exato; senão, usa a área xmin/xmax/ymin/ymax da seção pra posicionar
-     sozinho. Se nem um nem outro existir, a oferta não aparece no mapa
-     (mas continua contando nos números do topo — ela só precisa de uma
-     posição definida de um jeito ou de outro). */
-
-  // distância mínima (em unidades do mapa, escala 0–1000) entre dois pontos
-  // gerados automaticamente dentro da mesma seção — ajuste este número
-  // olhando o resultado no mapa até a distância parecer ~1–2cm na tela.
   const ESPACO_MIN_PONTOS = 40;
 
-  /* =========================================================================
-     MAPA BASE
-  ========================================================================= */
+  /* MAPA BASE */
   const bounds = [[0, 0], [1000, 1000]];
   const map = L.map('map', {
     crs: L.CRS.Simple,
@@ -295,10 +285,19 @@
   map.fitBounds(bounds);
 
   const ofertasLayer = L.layerGroup().addTo(map);
+  let linhaRotaAtual = null;
 
-  /* =========================================================================
-     HELPERS DE UI
-  ========================================================================= */
+  // Marcador Fixo da Entrada
+  const entradaIcon = L.divIcon({
+    className: 'entrada-pin',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+  L.marker([ENTRADA_LOJA[1], ENTRADA_LOJA[0]], { icon: entradaIcon })
+   .addTo(map)
+   .bindTooltip("Entrada da Loja", { permanent: false, direction: "top" });
+
+  /* HELPERS DE UI */
   const el = id => document.getElementById(id);
   const backdrop = el('backdrop');
   const sheetDetail = el('sheet-detail');
@@ -346,9 +345,27 @@
     return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
   }
 
-  /* =========================================================================
-     ÍCONE DO PINO
-  ========================================================================= */
+  /* ROTA AUTOMÁTICA DA ENTRADA */
+  function desenharCaminhoEntrada(destX, destY) {
+    if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
+
+    const pontos = [
+      [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
+      [destY, CORREDOR_PRINCIPAL_X],
+      [destY, destX]
+    ];
+
+    linhaRotaAtual = L.polyline(pontos, {
+      color: '#0F5C2E',
+      weight: 5,
+      dashArray: '8, 8',
+      lineCap: 'round'
+    }).addTo(map);
+
+    map.fitBounds(linhaRotaAtual.getBounds(), { padding: [60, 60] });
+  }
+
+  /* ÍCONE DO PINO */
   const pinSvg = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2C7 2 3 5.9 3 10.5c0 4.2 3.5 8.2 8.1 11.2.55.36 1.24.36 1.8 0C17.5 18.7 21 14.7 21 10.5 21 5.9 17 2 12 2Zm0 11.2a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Z" fill="white"/></svg>`;
   function criarIconePin(){
     return L.divIcon({
@@ -360,9 +377,7 @@
     });
   }
 
-  /* =========================================================================
-     DISTRIBUIÇÃO AUTOMÁTICA DE PONTOS DENTRO DA ÁREA DA SEÇÃO
-  ========================================================================= */
+  /* DISTRIBUIÇÃO AUTOMÁTICA DE PONTOS */
   function distribuirNaCaixa(caixa, n){
     const largura = Math.max(caixa.xmax - caixa.xmin, 1);
     const altura  = Math.max(caixa.ymax - caixa.ymin, 1);
@@ -380,11 +395,9 @@
     return pontos;
   }
 
-  /* =========================================================================
-     CARREGAR OFERTAS
-  ========================================================================= */
-  let ofertasComPosicao = [];  // [{ oferta, grupo, x, y }]
-  let gruposAtivos = {};       // id_setor -> { nome_setor, caixa, ofertas:[] }
+  /* CARREGAR OFERTAS */
+  let ofertasComPosicao = [];
+  let gruposAtivos = {};
 
   async function carregarOfertas(){
     mostrarEstado('loading');
@@ -426,7 +439,6 @@
         }
       }
 
-      // resolve a posição de cada oferta (própria, ou auto-distribuída na área da seção)
       ofertasComPosicao = [];
       Object.values(gruposAtivos).forEach(grupo => {
         const semPosicao = [];
@@ -446,8 +458,6 @@
               oferta.__idx = ofertasComPosicao.length;
               ofertasComPosicao.push({ oferta, grupo, x: pontos[i].x, y: pontos[i].y });
             });
-          } else {
-            console.warn(`Setor "${grupo.nome_setor}" sem x/y e sem xmin/xmax/ymin/ymax — ${semPosicao.length} oferta(s) não exibida(s) no mapa.`);
           }
         }
       });
@@ -468,7 +478,10 @@
     ofertasLayer.clearLayers();
     ofertasComPosicao.forEach((entry, idx) => {
       const marker = L.marker([entry.y, entry.x], { icon: criarIconePin() }).addTo(ofertasLayer);
-      marker.on('click', () => abrirDetalhe(idx));
+      marker.on('click', () => {
+        desenharCaminhoEntrada(entry.x, entry.y);
+        abrirDetalhe(idx);
+      });
     });
   }
 
@@ -493,7 +506,7 @@
         chip.className = 'chip';
         chip.innerHTML = `${grupo.nome_setor}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
         chip.addEventListener('click', () => {
-          map.flyTo([centro.y, centro.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
+          desenharCaminhoEntrada(centro.x, centro.y);
         });
         wrap.appendChild(chip);
       });
@@ -513,7 +526,7 @@
     if(tipo === 'loading'){
       el('state-text').textContent = 'Carregando ofertas do dia…';
     } else if(tipo === 'empty'){
-      el('state-text').textContent = 'Nenhuma oferta ativa no momento. Volte em instantes!';
+      el('state-text').textContent = 'Nenhuma oferta ativa no momento.';
     } else if(tipo === 'error'){
       overlay.classList.add('error');
       el('state-text').textContent = 'Não foi possível carregar as ofertas agora.';
@@ -521,13 +534,11 @@
   }
   el('state-retry').addEventListener('click', carregarOfertas);
 
-  /* =========================================================================
-     SHEET — DETALHE DE UMA OFERTA
-  ========================================================================= */
+  /* SHEET — DETALHE DA OFERTA */
   function abrirDetalhe(idx){
     const entry = ofertasComPosicao[idx];
     if(!entry) return;
-    const { oferta, grupo } = entry;
+    const { oferta, grupo, x, y } = entry;
 
     const desconto = (oferta.preco_de && oferta.preco_por)
       ? Math.round(100 - (parseFloat(oferta.preco_por.replace(',','.')) / parseFloat(oferta.preco_de.replace(',','.'))) * 100)
@@ -548,16 +559,17 @@
       </div>
       ${corredor ? `
         <div class="corredor-info">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="2"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.2" stroke="currentColor" stroke-width="2"/></svg>
           <span>Você pode encontrar no <b>corredor ${corredor}</b></span>
         </div>` : ''}
+      <button class="btn-traçar-caminho" onclick="desenharCaminhoEntrada(${x}, ${y}); closeSheets();">
+        🚶‍♂️ Ver Caminho da Entrada
+      </button>
     `;
     openSheet(sheetDetail);
   }
 
-  /* =========================================================================
-     SHEET — LISTA COMPLETA
-  ========================================================================= */
+  /* SHEET — LISTA COMPLETA */
   el('fab-list').addEventListener('click', () => {
     const inner = el('list-inner');
     inner.innerHTML = '';
@@ -583,9 +595,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.35;flex-shrink:0;"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           `;
           row.addEventListener('click', () => {
-            if(oferta.__idx === undefined){ toast('Localização não configurada para esta oferta'); return; }
+            if(oferta.__idx === undefined){ toast('Localização não configurada'); return; }
             const entry = ofertasComPosicao[oferta.__idx];
-            map.flyTo([entry.y, entry.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
+            desenharCaminhoEntrada(entry.x, entry.y);
             abrirDetalhe(oferta.__idx);
           });
           inner.appendChild(row);
@@ -594,9 +606,6 @@
     openSheet(sheetList);
   });
 
-  /* =========================================================================
-     INÍCIO
-  ========================================================================= */
   carregarOfertas();
   </script>
 </body>
