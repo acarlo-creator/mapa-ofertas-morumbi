@@ -39,11 +39,9 @@
   h1,h2,h3,.brand,.price-now,.chip-count{ font-family:'Poppins',sans-serif; }
   button{ font-family:inherit; }
 
-  /* MAPA */
   #map{ position:absolute; inset:0; background:var(--map-bg); z-index:1; }
   .leaflet-container{ background:var(--map-bg); }
 
-  /* TOP BAR */
   #topbar{
     position:absolute; top:0; left:0; right:0; z-index:800;
     padding:calc(12px + var(--safe-t)) 16px 20px 170px;
@@ -62,7 +60,6 @@
   }
   .status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#5CE68B; box-shadow:0 0 8px #5CE68B; flex-shrink:0; }
 
-  /* PAINEL DE SEÇÕES - POSICIONADO MAIS PARA BAIXO (5) */
   #secoes-panel {
     position: absolute; left: 14px; top: calc(100px + var(--safe-t)); z-index: 950;
     width: 140px; max-height: calc(100vh - 120px); overflow-y: auto;
@@ -83,7 +80,6 @@
     background: var(--lm-green-soft); color: var(--lm-green-deep); border-color: var(--lm-green);
   }
 
-  /* PONTO ENTRADA CLIENTE (1) */
   .cliente-verde-pin {
     width: 20px; height: 20px; background: #00e65c; border-radius: 50%;
     border: 3.5px solid #ffffff; box-shadow: 0 0 14px #00e65c;
@@ -95,7 +91,6 @@
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 230, 92, 0); }
   }
 
-  /* SETA AMARELA DE DESTINO DA SEÇÃO (3) */
   .seta-amarela-pin {
     width: 24px; height: 24px; background: #ffcc00; border-radius: 50%;
     border: 3px solid #ffffff; box-shadow: 0 0 16px #ffcc00;
@@ -108,7 +103,6 @@
     to { transform: scale(1.15); box-shadow: 0 0 20px #ffcc00; }
   }
 
-  /* PIN OFERTAS */
   .lm-pin-wrap{ position:relative; width:34px; height:46px; cursor: pointer; }
   .lm-pin{
     width:30px; height:30px; background:var(--lm-green); border:3px solid #fff;
@@ -119,7 +113,6 @@
   }
   .lm-pin svg{ transform:rotate(45deg); width:13px; height:13px; }
 
-  /* FAB LISTA */
   #fab-list{
     position:absolute; right:14px; bottom:calc(20px + var(--safe-b));
     z-index:850; background:var(--lm-green-deep); color:#fff; border:none;
@@ -127,7 +120,6 @@
     font-size:13.5px; font-weight:700; box-shadow:var(--shadow-lg); cursor:pointer; pointer-events:auto;
   }
 
-  /* BOTTOM SHEET */
   .backdrop{ position:fixed; inset:0; background:rgba(10,18,12,0.46); z-index:1000; opacity:0; pointer-events:none; transition:opacity .2s ease; }
   .backdrop.show{ opacity:1; pointer-events:auto; }
   .sheet{
@@ -147,7 +139,6 @@
   #detail-card .setor-label{ font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:2px; }
   #detail-card h3{ font-size:18px; font-weight:700; margin:0 0 10px; line-height:1.25; color:var(--ink); }
   
-  /* ESCALA DE IMAGEM CORRIGIDA (4) */
   #detail-card .photo-container {
     width: 100%; height: 160px; max-height: 160px; border-radius: 14px;
     background: #f8faf8; border: 1px solid var(--line); margin-bottom: 12px;
@@ -196,7 +187,6 @@
     </div>
   </div>
 
-  <!-- PAINEL FIXO DE SEÇÕES (REBAIXADO) -->
   <div id="secoes-panel">
     <div class="panel-title">Seções</div>
   </div>
@@ -233,8 +223,8 @@
   const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
   const IMAGEM_MAPA = 'mapa-loja.png';
 
-  // COORDENADA EXATA DO CÍRCULO "VOCÊ ESTÁ AQUI" NA BASE DO MAPA
-  const ENTRADA_LOJA = [415, 115];
+  // PONTO DE PARTIDA FIXO EXATO: CÍRCULO "VOCÊ ESTÁ AQUI" NA BASE DO MAPA
+  const ENTRADA_LOJA = [470, 140];
 
   const SECOES_OFICIAIS = {
     "iluminacao":  { nome: "Iluminação", x: 260, y: 220 },
@@ -272,7 +262,7 @@
   let linhaRotaAtual = null;
   let marcadorSetaAmarela = null;
 
-  // Ícone Cliente
+  // Marcador Ponto Verde na Entrada Físico da Planta
   const clienteIcon = L.divIcon({
     className: 'cliente-verde-pin',
     iconSize: [20, 20],
@@ -290,50 +280,67 @@
   document.getElementById('close-detail').addEventListener('click', fecharTelasSubsolo);
   document.getElementById('close-list').addEventListener('click', fecharTelasSubsolo);
 
-  /* DESENHO DE ROTA AZUL CONTÍNUA PELOS CORREDORES DA LOJA (2) */
+  /* NAVEGAÇÃO RIGOROSA PELAS LINHAS LARANJAS DOS CORREDORES */
   function desenharRotaCorredores(destX, destY, isSecao = false) {
     if (linhaRotaAtual) map.removeLayer(linhaRotaAtual);
     if (marcadorSetaAmarela) map.removeLayer(marcadorSetaAmarela);
 
-    const CORREDOR_ENTRADA_X = 480;
-    const CORREDOR_DIREITO_X = 720;
-
-    let yTransversal = 280;
-    if (destY > 400 && destY <= 650) yTransversal = 480;
+    // COORDENADAS EXATAS DOS CORREDORES CINZAS DA PLANTA
+    const CORREDOR_CAIXAS_Y = 200;      // Corredor horizontal acima da entrada
+    const CORREDOR_ESQUERDO_X = 425;    // Avenida vertical central/esquerda
+    const CORREDOR_CENTRAL_X = 530;     // Corredor entre Cozinhas/Jardim
+    const CORREDOR_DIREITO_X = 730;     // Corredor entre Tintas/Madeiras
+    
+    // Níveis de cruzamento horizontal
+    let yTransversal = 380;
+    if (destY > 450 && destY <= 650) yTransversal = 520;
     if (destY > 650) yTransversal = 680;
 
     let pontos = [];
 
-    if (destX > 600) {
+    // Estruturação do trajeto estritamente sobre as linhas dos corredores
+    if (destX > 680) {
+      // Destinos no lado direito (Ferramentas, Tintas, Madeiras, etc)
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [200, ENTRADA_LOJA[0]],
-        [200, CORREDOR_ENTRADA_X],
-        [yTransversal, CORREDOR_ENTRADA_X],
+        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA[0]],
+        [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
+        [yTransversal, CORREDOR_ESQUERDO_X],
         [yTransversal, CORREDOR_DIREITO_X],
         [destY, CORREDOR_DIREITO_X],
         [destY, destX]
       ];
-    } else {
+    } else if (destX > 480) {
+      // Destinos no centro (Cozinhas, Organização, Jardim, Banheiros)
       pontos = [
         [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
-        [200, ENTRADA_LOJA[0]],
-        [200, CORREDOR_ENTRADA_X],
-        [destY, CORREDOR_ENTRADA_X],
+        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA[0]],
+        [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
+        [yTransversal, CORREDOR_ESQUERDO_X],
+        [yTransversal, CORREDOR_CENTRAL_X],
+        [destY, CORREDOR_CENTRAL_X],
+        [destY, destX]
+      ];
+    } else {
+      // Destinos no lado esquerdo (Iluminação, Decoração, Pisos, Retirada)
+      pontos = [
+        [ENTRADA_LOJA[1], ENTRADA_LOJA[0]],
+        [CORREDOR_CAIXAS_Y, ENTRADA_LOJA[0]],
+        [CORREDOR_CAIXAS_Y, CORREDOR_ESQUERDO_X],
+        [destY, CORREDOR_ESQUERDO_X],
         [destY, destX]
       ];
     }
 
-    // Linha azul contínua
+    // Rota desenhada com linha azul contínua destacada
     linhaRotaAtual = L.polyline(pontos, {
       color: '#0073e6',
       weight: 6,
-      opacity: 0.9,
+      opacity: 0.95,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(map);
 
-    // Se for uma seleção de seção na lateral, adiciona a seta amarela de destino (3)
     if (isSecao) {
       const setaIcon = L.divIcon({
         className: 'seta-amarela-pin',
