@@ -744,6 +744,17 @@
   });
 
   /* =========================================================================
+     ACESSO DA EQUIPE — o botão de coordenadas só aparece com o código
+     secreto na URL (ex: mapa-loja.html?equipe=lm2026). O QR code dos
+     clientes deve apontar pro link normal, SEM esse parâmetro.
+  ========================================================================= */
+  const CODIGO_EQUIPE = 'lm2026'; // troque por outro código se quiser
+  const modoEquipe = new URLSearchParams(window.location.search).get('equipe') === CODIGO_EQUIPE;
+  if(!modoEquipe){
+    el('btn-coord').style.display = 'none';
+  }
+
+  /* =========================================================================
      INÍCIO
   ========================================================================= */
   carregarOfertas();
