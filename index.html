@@ -493,15 +493,23 @@
   function distribuirNaCaixa(caixa, n){
     const largura = Math.max(caixa.xmax - caixa.xmin, 1);
     const altura  = Math.max(caixa.ymax - caixa.ymin, 1);
-    const cols = Math.max(1, Math.min(n, Math.floor(largura / ESPACO_MIN_PONTOS) + 1));
-    const rows = Math.ceil(n / cols);
-    const passoX = cols > 1 ? largura / (cols - 1) : 0;
-    const passoY = rows > 1 ? altura / (rows - 1) : 0;
+    // quantas colunas/linhas cabem respeitando o espaço mínimo entre pontos
+    const maxCols = Math.max(1, Math.floor(largura / ESPACO_MIN_PONTOS));
+    const maxRows = Math.max(1, Math.floor(altura / ESPACO_MIN_PONTOS));
+    // escolhe uma grade proporcional ao formato da seção (larga = mais colunas)
+    let cols = Math.round(Math.sqrt(n * largura / altura));
+    cols = Math.max(1, Math.min(cols, maxCols, n));
+    let rows = Math.ceil(n / cols);
+    if(rows > maxRows && cols < maxCols){          // seção alta e estreita: tenta mais colunas
+      cols = Math.min(maxCols, Math.ceil(n / maxRows));
+      rows = Math.ceil(n / cols);
+    }
     const pontos = [];
     for(let i = 0; i < n; i++){
       const c = i % cols, r = Math.floor(i / cols);
-      const x = cols > 1 ? caixa.xmin + c * passoX : (caixa.xmin + caixa.xmax) / 2;
-      const y = rows > 1 ? caixa.ymin + r * passoY : (caixa.ymin + caixa.ymax) / 2;
+      // centro de cada "célula" da grade: nunca cola na borda da seção
+      const x = caixa.xmin + (largura * (c + 0.5)) / cols;
+      const y = caixa.ymin + (altura  * (r + 0.5)) / rows;
       pontos.push({ x: Math.round(x), y: Math.round(y) });
     }
     return pontos;
@@ -524,6 +532,24 @@
       if(lines.length < 2){ mostrarEstado('empty'); return; }
 
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const norm = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const ALIASES = {
+        id_setor: ['idsetor','id'], nome_setor: ['nomesetor','setor'],
+        ativo: ['ativo'], titulo_campanha: ['titulocampanha','titulo','campanha'],
+        codigo_produto: ['codigoproduto','codigo','codigolm','sku'],
+        produto_destaque: ['produtodestaque','produto'],
+        descricao_produto: ['descricaoproduto','descricao'],
+        preco_de: ['precode'], preco_por: ['precopor'],
+        foto_url: ['fotourl','foto','imagem'],
+        corredor: ['corredor','corredores','placa'],
+        link_produto: ['linkproduto','link','url'],
+        x: ['x'], y: ['y'], xmin:['xmin'], xmax:['xmax'], ymin:['ymin'], ymax:['ymax']
+      };
+      const headerMap = {};
+      headers.forEach(h => {
+        const n = norm(h);
+        for(const canon in ALIASES){ if(ALIASES[canon].includes(n)){ headerMap[canon] = h; break; } }
+      });
       gruposAtivos = {};
 
       for(let i = 1; i < lines.length; i++){
@@ -534,6 +560,9 @@
           val = val.replace(/^"|"$/g, '');
           item[h] = val;
         });
+        // espelha nos nomes canônicos, então o resto do código funciona
+        // não importa como a coluna foi nomeada de verdade na planilha
+        Object.keys(headerMap).forEach(canon => { item[canon] = item[headerMap[canon]]; });
 
         if(String(item.ativo).trim() !== '1') continue;
 
