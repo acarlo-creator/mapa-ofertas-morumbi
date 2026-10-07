@@ -43,15 +43,15 @@
   button{ font-family:inherit; }
 
   /* ---------- MAP ---------- */
-  #map{ position:absolute; inset:0; background:var(--map-bg); z-index:1; }
+  #map{ position:absolute; left:0; right:0; bottom:0; top:var(--topH,0px); background:var(--map-bg); z-index:1; }
   .leaflet-container{ background:var(--map-bg); }
 
   /* ---------- TOP BAR ---------- */
   #topbar{
     position:absolute; top:0; left:0; right:0; z-index:900;
-    padding:calc(12px + var(--safe-t)) 14px 46px;
-    background:linear-gradient(180deg, rgba(10,20,13,0.72) 0%, rgba(10,20,13,0.38) 65%, rgba(10,20,13,0) 100%);
-    pointer-events:none;
+    padding:calc(10px + var(--safe-t)) 14px 10px;
+    background:var(--lm-green-deep);
+    box-shadow:0 4px 16px rgba(10,20,13,0.28);
   }
   #topbar .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; pointer-events:auto; }
   .brand{ display:flex; flex-direction:column; line-height:1; color:#fff; }
@@ -107,19 +107,19 @@
   }
 
   /* ---------- SECTOR CHIPS ---------- */
-  #chips{ margin-top:10px; display:flex; gap:8px; overflow-x:auto; pointer-events:auto; padding:2px 1px 6px; scrollbar-width:none; }
+  #chips{ margin-top:9px; display:flex; gap:8px; overflow-x:auto; pointer-events:auto; padding:1px 1px 2px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
   #chips::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0; display:flex; align-items:center; gap:6px;
-    background:rgba(255,255,255,0.92); border:1px solid rgba(255,255,255,0.5);
-    color:var(--ink); font-size:12.5px; font-weight:600; padding:7px 12px;
+    background:#fff; border:none;
+    color:var(--ink); font-size:14px; font-weight:600; padding:0 15px; min-height:40px;
     border-radius:20px; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.12);
     transition:transform .12s ease;
   }
   .chip:active{ transform:scale(0.95); }
   .chip .chip-count{
     background:var(--lm-green-deep); color:#fff; font-size:10.5px; font-weight:700;
-    min-width:16px; height:16px; padding:0 4px; border-radius:8px;
+    min-width:20px; height:20px; padding:0 5px; border-radius:10px; font-size:12px;
     display:flex; align-items:center; justify-content:center;
   }
 
@@ -135,6 +135,26 @@
   .lm-pin svg{ transform:rotate(45deg); width:13px; height:13px; }
   @keyframes dropIn{ from{ transform:translateY(-14px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
   .lm-pin-wrap{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
+
+  /* ---------- BALÃO DE OFERTA (preço dentro do pino) ---------- */
+  :root{ --ps:1; }
+  .lm-bubble{
+    box-sizing:border-box; position:relative; display:flex; align-items:center; justify-content:center;
+    border-radius:999px; background:var(--lm-green-deep); color:#fff; border:3px solid #fff;
+    font-family:'Poppins',sans-serif; font-weight:800; font-size:calc(15px * var(--ps));
+    letter-spacing:.2px; line-height:1; white-space:nowrap;
+    box-shadow:0 6px 16px rgba(0,0,0,.45);
+  }
+  .lm-bubble::after{
+    content:''; position:absolute; left:50%; bottom:calc(-9px * var(--ps));
+    width:calc(13px * var(--ps)); height:calc(13px * var(--ps));
+    background:var(--lm-green-deep); border-right:3px solid #fff; border-bottom:3px solid #fff;
+    border-radius:0 0 3px 0; transform:translateX(-50%) rotate(45deg);
+  }
+  .lm-bubble.compact{ font-size:calc(13.5px * var(--ps)); }
+  .lm-bubble.sel{ background:var(--lm-orange); }
+  .lm-bubble.sel::after{ background:var(--lm-orange); }
+  .lm-bubble.drop{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
 
   /* ---------- FAB ---------- */
   #fab-list{
@@ -393,6 +413,7 @@
     backdrop.classList.remove('show');
     sheetDetail.classList.remove('show');
     sheetList.classList.remove('show');
+    if(typeof selIdx !== 'undefined' && selIdx !== null){ selIdx = null; atualizarPinos(); }
   }
   backdrop.addEventListener('click', closeSheets);
   el('close-detail').addEventListener('click', closeSheets);
@@ -416,8 +437,15 @@
   enableDragToClose(el('handle-detail'), sheetDetail);
   enableDragToClose(el('handle-list'), sheetList);
 
+  function parsePreco(v){
+    let t = String(v == null ? '' : v).replace(/[^\d.,]/g,'');
+    if(t.includes(',')) t = t.replace(/\./g,'').replace(',','.');
+    else if(/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g,'');
+    const n = parseFloat(t);
+    return isNaN(n) ? NaN : n;
+  }
   function formatPreco(v){
-    const n = parseFloat(String(v).replace(',','.'));
+    const n = parsePreco(v);
     if(isNaN(n)) return '';
     return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
   }
@@ -477,16 +505,67 @@
   /* =========================================================================
      ÍCONE DO PINO
   ========================================================================= */
-  const pinSvg = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 2C7 2 3 5.9 3 10.5c0 4.2 3.5 8.2 8.1 11.2.55.36 1.24.36 1.8 0C17.5 18.7 21 14.7 21 10.5 21 5.9 17 2 12 2Zm0 11.2a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Z" fill="white"/></svg>`;
-  function criarIconePin(){
+  let selIdx = null;        // oferta selecionada (balão fica laranja)
+  let marcadores = [];      // um marker por oferta
+
+  function escala(){
+    const w = window.innerWidth;
+    const v = w >= 900 ? 1.2 : (w >= 400 ? 1.08 : 1);
+    document.documentElement.style.setProperty('--ps', v);
+    return v;
+  }
+  function textoPreco(oferta){
+    const n = parsePreco(oferta.preco_por);
+    if(isNaN(n)) return 'Oferta';
+    return 'R$ ' + (Number.isInteger(n) ? n : n.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}));
+  }
+  function descontoOferta(o){
+    const a = parsePreco(o.preco_por), b = parsePreco(o.preco_de);
+    return (isNaN(a) || isNaN(b) || b <= 0) ? 0 : Math.round(100 - (a / b) * 100);
+  }
+  function criarIconeBalao(modo, w, h, tip, txt, sel, novo){
+    const cls = 'lm-bubble' + (modo === 'compact' ? ' compact' : '') + (sel ? ' sel' : '') + (novo ? ' drop' : '');
     return L.divIcon({
       className: '',
-      html: `<div class="lm-pin-wrap"><div class="lm-pin">${pinSvg}</div></div>`,
-      iconSize: [34, 46],
-      iconAnchor: [17, 42],
-      popupAnchor: [0, -36]
+      html: `<div class="${cls}" style="width:${w}px;height:${h}px">${modo === 'compact' ? 'R$' : txt}</div>`,
+      iconSize: [w, h + tip],
+      iconAnchor: [w / 2, h + tip]
     });
   }
+
+  /* Balão com preço onde há espaço; onde dois balões se encostariam, o de menor
+     desconto vira um círculo "R$" menor (toque abre igual). Ao dar zoom, volta tudo
+     a balão. Recalcula a cada zoom/rotação de tela. */
+  function atualizarPinos(){
+    if(!marcadores.length) return;
+    const ps = escala();
+    const h = Math.round(40 * ps), tip = Math.round(12 * ps), comp = Math.round(46 * ps);
+    const itens = marcadores.map(m => ({
+      m, p: map.latLngToContainerPoint(m.getLatLng()), txt: textoPreco(m.__entry.oferta), d: m.__entry.desc || 0
+    })).sort((a, b) => (b.d - a.d) || (a.m.__idx - b.m.__idx));
+    const ocupados = [], PAD = 4;
+    itens.forEach(it => {
+      const wFull = Math.round((it.txt.length * 9.8 + 28) * ps);
+      const rFull = [it.p.x - wFull/2 - PAD, it.p.y - h - tip - PAD, it.p.x + wFull/2 + PAD, it.p.y + PAD];
+      const bate = r => ocupados.some(o => r[0] < o[2] && r[2] > o[0] && r[1] < o[3] && r[3] > o[1]);
+      const sel = (it.m.__idx === selIdx);
+      let modo = 'full', w = wFull;
+      if(!sel && bate(rFull)){ modo = 'compact'; w = comp; }
+      const hh = modo === 'compact' ? comp : h;
+      const r = modo === 'compact'
+        ? [it.p.x - comp/2 - PAD, it.p.y - comp - tip - PAD, it.p.x + comp/2 + PAD, it.p.y + PAD]
+        : rFull;
+      ocupados.push(r);
+      const key = [modo, w, hh, it.txt, sel].join('|');
+      if(it.m.__key !== key){
+        it.m.setIcon(criarIconeBalao(modo, w, hh, tip, it.txt, sel, it.m.__novo));
+        it.m.__key = key; it.m.__novo = false;
+      }
+      it.m.setZIndexOffset(sel ? 10000 : 0);
+    });
+  }
+  map.on('zoomend', atualizarPinos);
+  map.on('resize', atualizarPinos);
 
   /* =========================================================================
      DISTRIBUIÇÃO AUTOMÁTICA DE PONTOS DENTRO DA ÁREA DA SEÇÃO
@@ -623,10 +702,34 @@
 
   function desenharPinos(){
     ofertasLayer.clearLayers();
+    marcadores = [];
+    selIdx = null;
     ofertasComPosicao.forEach((entry, idx) => {
-      const marker = L.marker([entry.y, entry.x], { icon: criarIconePin() }).addTo(ofertasLayer);
+      entry.desc = descontoOferta(entry.oferta);
+      const marker = L.marker([entry.y, entry.x], { icon: L.divIcon({ className:'', html:'', iconSize:[10,10] }), keyboard:false }).addTo(ofertasLayer);
+      marker.__entry = entry; marker.__idx = idx; marker.__novo = true;
       marker.on('click', () => abrirDetalhe(idx));
+      marcadores.push(marker);
     });
+    enquadrarOfertas();
+    atualizarPinos();
+  }
+
+  /* abre já enquadrando as ofertas do dia (e não a loja inteira) */
+  function enquadrarOfertas(){
+    const pts = ofertasComPosicao.map(e => [e.y, e.x]);
+    if(!pts.length) return;
+    map.fitBounds(L.latLngBounds(pts), {
+      paddingTopLeft: [64, 70], paddingBottomRight: [64, 104], maxZoom: 0.6, animate: false
+    });
+  }
+
+  /* centraliza a oferta na parte de CIMA da tela, acima do cartão que sobe de baixo */
+  function focarComSheet(entry){
+    const z = Math.max(map.getZoom(), 0.4);
+    const p = map.project([entry.y, entry.x], z);
+    const alvo = map.unproject(L.point(p.x, p.y + map.getSize().y * 0.2), z);
+    map.flyTo(alvo, z, { duration: 0.5 });
   }
 
   function centroGrupo(grupo){
@@ -650,7 +753,7 @@
         chip.className = 'chip';
         chip.innerHTML = `${grupo.nome_setor}${grupo.ofertas.length > 1 ? `<span class="chip-count">${grupo.ofertas.length}</span>` : ''}`;
         chip.addEventListener('click', () => {
-          map.flyTo([centro.y, centro.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
+          map.flyTo([centro.y, centro.x], Math.max(map.getZoom(), 0.5), { duration: 0.6 });
         });
         wrap.appendChild(chip);
       });
@@ -686,6 +789,9 @@
     if(!entry) return;
     el('detail-card').innerHTML = montarCardOferta(entry.oferta, entry.grupo);
     openSheet(sheetDetail);
+    selIdx = idx;
+    atualizarPinos();
+    focarComSheet(entry);
   }
 
   function abrirDetalheSemMapa(oferta, grupo){
@@ -695,7 +801,7 @@
 
   function montarCardOferta(oferta, grupo){
     const desconto = (oferta.preco_de && oferta.preco_por)
-      ? Math.round(100 - (parseFloat(oferta.preco_por.replace(',','.')) / parseFloat(oferta.preco_de.replace(',','.'))) * 100)
+      ? Math.round(100 - (parsePreco(oferta.preco_por) / parsePreco(oferta.preco_de)) * 100)
       : null;
     const corredor = (oferta.corredor || '').trim();
     const codigo = (oferta.codigo_produto || '').trim();
@@ -763,8 +869,6 @@
               abrirDetalheSemMapa(oferta, grupo);
               return;
             }
-            const entry = ofertasComPosicao[oferta.__idx];
-            map.flyTo([entry.y, entry.x], Math.max(map.getZoom(), 0.4), { duration: 0.6 });
             abrirDetalhe(oferta.__idx);
           });
           inner.appendChild(row);
@@ -783,6 +887,20 @@
   if(!modoEquipe){
     el('btn-coord').style.display = 'none';
   }
+
+  /* =========================================================================
+     LAYOUT: mapa começa abaixo da barra de cima (nada cobre o mapa) e o zoom
+     mínimo é o que mostra a loja inteira sem cortar nas laterais.
+  ========================================================================= */
+  function ajustarLayout(){
+    document.documentElement.style.setProperty('--topH', el('topbar').offsetHeight + 'px');
+    map.invalidateSize({ pan:false });
+    map.setMinZoom(map.getBoundsZoom(bounds, false));
+  }
+  window.addEventListener('resize', ajustarLayout);
+  if('ResizeObserver' in window) new ResizeObserver(ajustarLayout).observe(el('topbar'));
+  ajustarLayout();
+  map.fitBounds(bounds);
 
   /* =========================================================================
      INÍCIO
