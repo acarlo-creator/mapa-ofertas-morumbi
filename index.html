@@ -136,26 +136,6 @@
   @keyframes dropIn{ from{ transform:translateY(-14px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
   .lm-pin-wrap{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
 
-  /* ---------- BALÃO DE OFERTA (preço dentro do pino) ---------- */
-  :root{ --ps:1; }
-  .lm-bubble{
-    box-sizing:border-box; position:relative; display:flex; align-items:center; justify-content:center;
-    border-radius:999px; background:var(--lm-green-deep); color:#fff; border:3px solid #fff;
-    font-family:'Poppins',sans-serif; font-weight:800; font-size:calc(15px * var(--ps));
-    letter-spacing:.2px; line-height:1; white-space:nowrap;
-    box-shadow:0 6px 16px rgba(0,0,0,.45);
-  }
-  .lm-bubble::after{
-    content:''; position:absolute; left:50%; bottom:calc(-9px * var(--ps));
-    width:calc(13px * var(--ps)); height:calc(13px * var(--ps));
-    background:var(--lm-green-deep); border-right:3px solid #fff; border-bottom:3px solid #fff;
-    border-radius:0 0 3px 0; transform:translateX(-50%) rotate(45deg);
-  }
-  .lm-bubble.compact{ font-size:calc(13.5px * var(--ps)); }
-  .lm-bubble.sel{ background:var(--lm-orange); }
-  .lm-bubble.sel::after{ background:var(--lm-orange); }
-  .lm-bubble.drop{ animation:dropIn .35s cubic-bezier(.2,.9,.3,1.3); }
-
   /* ---------- FAB ---------- */
   #fab-list{
     position:absolute; right:14px; bottom:calc(20px + var(--safe-b));
@@ -262,6 +242,93 @@
     font-weight:700; font-size:13.5px; cursor:pointer; display:none;
   }
   #state-overlay.error button{ display:block; }
+
+  /* =========================================================================
+     VISUAL LEROY MERLIN MODERNO
+  ========================================================================= */
+  :root{ --lm-lime:#78BE20; --lm-lime-d:#5FA81A; --map-bg:#EEF1EA; --ps:1; }
+
+  /* barra de cima: branca, limpa, com a faixa verde da marca */
+  #topbar{
+    background:rgba(255,255,255,.95); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    padding:calc(14px + var(--safe-t)) 16px 12px;
+    box-shadow:0 8px 24px rgba(15,45,25,.14);
+  }
+  #topbar::before{ content:''; position:absolute; left:0; right:0; top:0; height:4px;
+    background:linear-gradient(90deg,var(--lm-lime),var(--lm-green-deep)); }
+  .brand b{ color:var(--lm-green-deep); font-size:16px; letter-spacing:.4px; }
+  .brand span{ color:var(--ink-soft); font-size:11.5px; }
+  .status-pill{ background:#EAF6DA; color:var(--lm-green-deep); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .status-pill .dot{ background:var(--lm-lime-d); box-shadow:0 0 0 0 rgba(120,190,32,.55); animation:lmPing 2.2s infinite; }
+  @keyframes lmPing{ 70%{ box-shadow:0 0 0 7px rgba(120,190,32,0); } 100%{ box-shadow:0 0 0 0 rgba(120,190,32,0); } }
+  .icon-btn{ background:#F1F4EC; color:var(--ink); box-shadow:none; }
+  .chip{ background:#F3F8EC; border:1.5px solid #D9EBC0; color:var(--ink); box-shadow:none; transition:transform .12s ease, background .12s ease; }
+  .chip:active{ background:#E2F1CC; }
+  .chip .chip-count{ background:var(--lm-green-deep); }
+
+  /* botão "ver todas" */
+  #fab-list{ background:var(--lm-green-deep); border-radius:30px; padding:7px 18px 7px 7px; gap:10px;
+    box-shadow:0 14px 30px rgba(15,60,30,.38); }
+  #fab-list .fab-ic{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(145deg,#8fd12f,#5fa81a); }
+  #fab-list .fab-n{ background:rgba(255,255,255,.18); border-radius:10px; padding:2px 8px; font-size:12px; }
+  #fab-list .fab-n:empty{ display:none; }
+
+  /* cartão da oferta */
+  .sheet{ border-radius:26px 26px 0 0; box-shadow:0 -14px 40px rgba(10,30,15,.30); }
+  .sheet-handle span{ width:44px; height:5px; background:#D5DBD0; }
+  #detail-card .tag{ background:#EAF6DA; color:var(--lm-green-deep); border-radius:999px; padding:6px 12px; }
+  #detail-card h3{ font-size:20px; letter-spacing:-.2px; }
+  #detail-card .photo{ border-radius:18px; }
+  .price-now{ font-size:30px; color:var(--lm-green-deep); letter-spacing:-.5px; }
+  .price-off{ background:linear-gradient(135deg,#FF8A3D,#FF6B00); border-radius:999px; padding:5px 11px; font-size:12.5px; }
+  .corredor-info{ background:#F3F8EC; border:1.5px solid #D9EBC0; border-radius:16px; }
+  .btn-site{ background:var(--lm-green-deep); border-radius:14px; padding:15px; }
+  .list-row img{ border-radius:12px; }
+
+  /* ---------- PINO DE OFERTA: pílula branca + selo verde + ponto de ancoragem ---------- */
+  .lm-pin2{ position:relative; width:var(--w); height:calc(var(--h) + var(--tip) + 12px); }
+  .lm-pin2 .lm-tail{
+    position:absolute; z-index:1; left:50%; top:calc(var(--h) - 6px * var(--ps));
+    width:calc(12px * var(--ps)); height:calc(12px * var(--ps)); background:#fff;
+    transform:translateX(-50%) rotate(45deg); border-radius:2px; box-shadow:3px 3px 7px rgba(10,30,15,.20);
+  }
+  .lm-pin2 .lm-body{
+    position:absolute; z-index:2; left:0; top:0; width:var(--w); height:var(--h); box-sizing:border-box;
+    display:flex; align-items:center; gap:calc(7px * var(--ps)); padding:0 calc(14px * var(--ps)) 0 calc(5px * var(--ps));
+    background:#fff; border-radius:999px;
+    box-shadow:0 10px 22px rgba(10,30,15,.32), 0 0 0 1.5px rgba(15,92,46,.14);
+  }
+  .lm-pin2 .lm-badge{
+    flex:0 0 auto; width:calc(32px * var(--ps)); height:calc(32px * var(--ps)); border-radius:50%;
+    background:linear-gradient(145deg,#8fd12f,#5fa81a); display:flex; align-items:center; justify-content:center;
+  }
+  .lm-pin2 .lm-badge svg{ width:58%; height:58%; }
+  .lm-pin2 .lm-price{
+    font-family:'Poppins',sans-serif; font-weight:800; font-size:calc(15px * var(--ps)); line-height:1;
+    color:var(--ink); letter-spacing:-.1px; white-space:nowrap;
+  }
+  .lm-pin2 .lm-dot{
+    position:absolute; z-index:3; left:50%; top:calc(var(--h) + var(--tip)); width:12px; height:12px; margin-left:-6px;
+    box-sizing:border-box; border-radius:50%; background:var(--lm-lime-d); border:2.5px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+  }
+  .lm-pin2 .lm-dot::after{
+    content:''; position:absolute; inset:-6px; border-radius:50%; border:2px solid rgba(95,168,26,.55);
+    animation:lmRing 2.2s ease-out infinite;
+  }
+  @keyframes lmRing{ 0%{ transform:scale(.5); opacity:.9; } 100%{ transform:scale(1.6); opacity:0; } }
+  /* versão compacta (quando dois balões se encostariam): só o selo */
+  .lm-pin2.compact .lm-body{ padding:0; justify-content:center; }
+  .lm-pin2.compact .lm-badge{ width:calc(var(--w) - 8px * var(--ps)); height:calc(var(--w) - 8px * var(--ps)); }
+  .lm-pin2.compact .lm-price{ display:none; }
+  /* selecionado */
+  .lm-pin2.sel .lm-body, .lm-pin2.sel .lm-tail{ background:var(--lm-green-deep); }
+  .lm-pin2.sel .lm-price{ color:#fff; }
+  .lm-pin2.sel .lm-badge{ background:linear-gradient(145deg,#FF8A3D,#FF6B00); }
+  .lm-pin2.sel .lm-dot{ background:#FF6B00; }
+  .lm-pin2.drop .lm-body, .lm-pin2.drop .lm-tail, .lm-pin2.drop .lm-dot{ animation:dropIn .38s cubic-bezier(.2,.9,.3,1.3); }
+  @media (prefers-reduced-motion:reduce){ .lm-pin2 .lm-dot::after, .status-pill .dot{ animation:none; } }
 </style>
 </head>
 <body>
@@ -299,8 +366,8 @@
   </div>
 
   <button id="fab-list">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
-    Ver todas as ofertas
+    <span class="fab-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+    Ver todas as ofertas<span class="fab-n" id="fab-n"></span>
   </button>
 
   <div class="backdrop" id="backdrop"></div>
@@ -388,7 +455,7 @@
     attributionControl: false
   });
   L.imageOverlay(IMAGEM_MAPA, bounds).addTo(map);
-  map.fitBounds(bounds);
+  map.fitBounds(bounds, { animate:false });
 
   const ofertasLayer = L.layerGroup().addTo(map);
 
@@ -517,51 +584,51 @@
   function textoPreco(oferta){
     const n = parsePreco(oferta.preco_por);
     if(isNaN(n)) return 'Oferta';
-    return 'R$ ' + (Number.isInteger(n) ? n : n.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}));
+    return 'R$ ' + (Number.isInteger(n) ? n.toLocaleString('pt-BR') : n.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}));
   }
   function descontoOferta(o){
     const a = parsePreco(o.preco_por), b = parsePreco(o.preco_de);
     return (isNaN(a) || isNaN(b) || b <= 0) ? 0 : Math.round(100 - (a / b) * 100);
   }
+  const TAG_SVG = `<svg viewBox="0 0 24 24" fill="none"><path d="M3 12.2V4.8A1.8 1.8 0 0 1 4.8 3h7.4a1.8 1.8 0 0 1 1.3.5l7 7a1.8 1.8 0 0 1 0 2.6l-7.4 7.4a1.8 1.8 0 0 1-2.6 0l-7-7A1.8 1.8 0 0 1 3 12.2Z" fill="#fff"/><circle cx="8" cy="8" r="1.8" fill="#5FA81A"/></svg>`;
   function criarIconeBalao(modo, w, h, tip, txt, sel, novo){
-    const cls = 'lm-bubble' + (modo === 'compact' ? ' compact' : '') + (sel ? ' sel' : '') + (novo ? ' drop' : '');
+    const cls = 'lm-pin2' + (modo === 'compact' ? ' compact' : '') + (sel ? ' sel' : '') + (novo ? ' drop' : '');
     return L.divIcon({
       className: '',
-      html: `<div class="${cls}" style="width:${w}px;height:${h}px">${modo === 'compact' ? 'R$' : txt}</div>`,
-      iconSize: [w, h + tip],
-      iconAnchor: [w / 2, h + tip]
+      html: `<div class="${cls}" style="--w:${w}px;--h:${h}px;--tip:${tip}px">
+               <span class="lm-tail"></span>
+               <div class="lm-body"><span class="lm-badge">${TAG_SVG}</span><span class="lm-price">${txt}</span></div>
+               <span class="lm-dot"></span>
+             </div>`,
+      iconSize: [w, h + tip + 12],
+      iconAnchor: [w / 2, h + tip + 6]
     });
   }
 
-  /* Balão com preço onde há espaço; onde dois balões se encostariam, o de menor
-     desconto vira um círculo "R$" menor (toque abre igual). Ao dar zoom, volta tudo
-     a balão. Recalcula a cada zoom/rotação de tela. */
+  /* Pílula com preço onde há espaço; onde duas se encostariam, a de menor desconto
+     vira só o selo verde (toque abre igual). Ao dar zoom, tudo volta a pílula. */
   function atualizarPinos(){
     if(!marcadores.length) return;
     const ps = escala();
-    const h = Math.round(40 * ps), tip = Math.round(12 * ps), comp = Math.round(46 * ps);
+    const h = Math.round(42 * ps), tip = Math.round(9 * ps), comp = Math.round(42 * ps);
     const itens = marcadores.map(m => ({
       m, p: map.latLngToContainerPoint(m.getLatLng()), txt: textoPreco(m.__entry.oferta), d: m.__entry.desc || 0
     })).sort((a, b) => (b.d - a.d) || (a.m.__idx - b.m.__idx));
-    const ocupados = [], PAD = 4;
-    itens.forEach(it => {
-      const wFull = Math.round((it.txt.length * 9.8 + 28) * ps);
-      const rFull = [it.p.x - wFull/2 - PAD, it.p.y - h - tip - PAD, it.p.x + wFull/2 + PAD, it.p.y + PAD];
+    const ocupados = [], PAD = 4, N = itens.length;
+    itens.forEach((it, rank) => {
+      const wFull = Math.round((it.txt.length * 9.6 + 58) * ps);
+      const ret = (w, hh) => [it.p.x - w/2 - PAD, it.p.y - 6 - tip - hh - PAD, it.p.x + w/2 + PAD, it.p.y + 6 + PAD];
       const bate = r => ocupados.some(o => r[0] < o[2] && r[2] > o[0] && r[1] < o[3] && r[3] > o[1]);
       const sel = (it.m.__idx === selIdx);
-      let modo = 'full', w = wFull;
-      if(!sel && bate(rFull)){ modo = 'compact'; w = comp; }
-      const hh = modo === 'compact' ? comp : h;
-      const r = modo === 'compact'
-        ? [it.p.x - comp/2 - PAD, it.p.y - comp - tip - PAD, it.p.x + comp/2 + PAD, it.p.y + PAD]
-        : rFull;
-      ocupados.push(r);
+      let modo = 'full', w = wFull, hh = h;
+      if(!sel && bate(ret(wFull, h))){ modo = 'compact'; w = comp; hh = comp; }
+      ocupados.push(ret(w, hh));
       const key = [modo, w, hh, it.txt, sel].join('|');
       if(it.m.__key !== key){
         it.m.setIcon(criarIconeBalao(modo, w, hh, tip, it.txt, sel, it.m.__novo));
         it.m.__key = key; it.m.__novo = false;
       }
-      it.m.setZIndexOffset(sel ? 10000 : 0);
+      it.m.setZIndexOffset(sel ? 100000 : (N - rank) * 1000);
     });
   }
   map.on('zoomend', atualizarPinos);
@@ -719,14 +786,25 @@
   function enquadrarOfertas(){
     const pts = ofertasComPosicao.map(e => [e.y, e.x]);
     if(!pts.length) return;
-    map.fitBounds(L.latLngBounds(pts), {
-      paddingTopLeft: [64, 70], paddingBottomRight: [64, 104], maxZoom: 0.6, animate: false
-    });
+    const sz = map.getSize();
+    const ps = escala();
+    const meia = Math.max(...ofertasComPosicao.map(e => (textoPreco(e.oferta).length * 9.6 + 58) * ps / 2)) + 14;
+    const pad = { l:meia, r:meia, t:Math.round(63 * ps) + 28, b:108 };
+    const ys = pts.map(p => p[0]), xs = pts.map(p => p[1]);
+    const dx = Math.max(...xs) - Math.min(...xs), dy = Math.max(...ys) - Math.min(...ys);
+    const zx = dx > 0 ? Math.log2((sz.x - pad.l - pad.r) / dx) : Infinity;
+    const zy = dy > 0 ? Math.log2((sz.y - pad.t - pad.b) / dy) : Infinity;
+    let z = Math.min(zx, zy, 0.6);
+    z = Math.max(map.getMinZoom(), Math.floor(z * 10) / 10);
+    const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+    const off = L.point((pad.l - pad.r) / 2, (pad.t - pad.b) / 2);
+    const c = map.project([cy, cx], z).subtract(off);
+    map.setView(map.unproject(c, z), z, { animate:false });
   }
 
   /* centraliza a oferta na parte de CIMA da tela, acima do cartão que sobe de baixo */
   function focarComSheet(entry){
-    const z = Math.max(map.getZoom(), 0.4);
+    const z = Math.max(map.getZoom(), 0.1);
     const p = map.project([entry.y, entry.x], z);
     const alvo = map.unproject(L.point(p.x, p.y + map.getSize().y * 0.2), z);
     map.flyTo(alvo, z, { duration: 0.5 });
@@ -762,6 +840,7 @@
   function montarStatus(){
     const totalOfertas = ofertasComPosicao.length;
     const totalSetores = Object.keys(gruposAtivos).length;
+    el('fab-n').textContent = totalOfertas;
     el('status-text').textContent = `${totalOfertas} oferta${totalOfertas !== 1 ? 's' : ''} · ${totalSetores} setor${totalSetores !== 1 ? 'es' : ''}`;
   }
 
@@ -895,12 +974,13 @@
   function ajustarLayout(){
     document.documentElement.style.setProperty('--topH', el('topbar').offsetHeight + 'px');
     map.invalidateSize({ pan:false });
-    map.setMinZoom(map.getBoundsZoom(bounds, false));
+    const sz = map.getSize();
+    if(sz.x > 0 && sz.y > 0) map.setMinZoom(Math.ceil(Math.log2(Math.min(sz.x, sz.y) / 1000) * 10) / 10);
   }
   window.addEventListener('resize', ajustarLayout);
   if('ResizeObserver' in window) new ResizeObserver(ajustarLayout).observe(el('topbar'));
   ajustarLayout();
-  map.fitBounds(bounds);
+  map.fitBounds(bounds, { animate:false });
 
   /* =========================================================================
      INÍCIO
