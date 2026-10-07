@@ -475,13 +475,22 @@
     toast._tm = setTimeout(()=> t.classList.remove('show'), 1800);
   }
 
-  function openSheet(sheet){ closeSheets(); backdrop.classList.add('show'); sheet.classList.add('show'); }
-  function closeSheets(){
+  /* vista (centro + zoom) que o cliente tinha antes de abrir uma oferta */
+  let vistaAnterior = null;
+  function restaurarVista(){
+    if(!vistaAnterior) return;
+    const v = vistaAnterior; vistaAnterior = null;
+    map.flyTo(v.c, v.z, { duration: 0.6 });
+  }
+  function esconderSheets(){
     backdrop.classList.remove('show');
     sheetDetail.classList.remove('show');
     sheetList.classList.remove('show');
     if(typeof selIdx !== 'undefined' && selIdx !== null){ selIdx = null; atualizarPinos(); }
   }
+  function openSheet(sheet){ esconderSheets(); backdrop.classList.add('show'); sheet.classList.add('show'); }
+  /* fechar pelo cliente (X, fundo escuro ou arrastar pra baixo): some o cartão e o zoom volta */
+  function closeSheets(){ esconderSheets(); restaurarVista(); }
   backdrop.addEventListener('click', closeSheets);
   el('close-detail').addEventListener('click', closeSheets);
   el('close-list').addEventListener('click', closeSheets);
@@ -804,6 +813,7 @@
 
   /* centraliza a oferta na parte de CIMA da tela, acima do cartão que sobe de baixo */
   function focarComSheet(entry){
+    if(!vistaAnterior) vistaAnterior = { c: map.getCenter(), z: map.getZoom() };
     const z = Math.max(map.getZoom(), 0.1);
     const p = map.project([entry.y, entry.x], z);
     const alvo = map.unproject(L.point(p.x, p.y + map.getSize().y * 0.2), z);
