@@ -581,6 +581,7 @@
   /* =========================================================================
      ÍCONE DO PINO
   ========================================================================= */
+  const MOSTRAR_PRECO_NO_PINO = false;   // false = só o ponto no mapa; true = pílula com preço
   let selIdx = null;        // oferta selecionada (balão fica laranja)
   let marcadores = [];      // um marker por oferta
 
@@ -629,8 +630,8 @@
       const ret = (w, hh) => [it.p.x - w/2 - PAD, it.p.y - 6 - tip - hh - PAD, it.p.x + w/2 + PAD, it.p.y + 6 + PAD];
       const bate = r => ocupados.some(o => r[0] < o[2] && r[2] > o[0] && r[1] < o[3] && r[3] > o[1]);
       const sel = (it.m.__idx === selIdx);
-      let modo = 'full', w = wFull, hh = h;
-      if(!sel && bate(ret(wFull, h))){ modo = 'compact'; w = comp; hh = comp; }
+      let modo = 'compact', w = comp, hh = comp;
+      if(MOSTRAR_PRECO_NO_PINO && (sel || !bate(ret(wFull, h)))){ modo = 'full'; w = wFull; hh = h; }
       ocupados.push(ret(w, hh));
       const key = [modo, w, hh, it.txt, sel].join('|');
       if(it.m.__key !== key){
@@ -797,7 +798,9 @@
     if(!pts.length) return;
     const sz = map.getSize();
     const ps = escala();
-    const meia = Math.max(...ofertasComPosicao.map(e => (textoPreco(e.oferta).length * 9.6 + 58) * ps / 2)) + 14;
+    const meia = (MOSTRAR_PRECO_NO_PINO
+      ? Math.max(...ofertasComPosicao.map(e => (textoPreco(e.oferta).length * 9.6 + 58) * ps / 2))
+      : Math.round(42 * ps) / 2) + 16;
     const pad = { l:meia, r:meia, t:Math.round(63 * ps) + 28, b:108 };
     const ys = pts.map(p => p[0]), xs = pts.map(p => p[1]);
     const dx = Math.max(...xs) - Math.min(...xs), dy = Math.max(...ys) - Math.min(...ys);
